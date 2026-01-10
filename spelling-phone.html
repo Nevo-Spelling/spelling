@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משחק איות – גרסת טלפון</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.box {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+button, input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 18px;
+}
+#feedback {
+  margin-top: 10px;
+  font-weight: bold;
+}
+#summary {
+  margin-top: 15px;
+  font-size: 15px;
+  text-align: right;
+}
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <!-- נגן אודיו קבוע – זה מה שפותח את הבעיה -->
+  <audio id="player"></audio>
+
+  <h2>משחק איות</h2>
+
+  <button onclick="playWord()">🔊 השמע מילה</button>
+
+  <input
+    id="answer"
+    placeholder="כתוב כאן"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    inputmode="text"
+  >
+
+  <button onclick="checkAnswer()">בדוק</button>
+
+  <div id="feedback"></div>
+
+  <div>
+    מילה <span id="current">1</span> מתוך <span id="total"></span>
+  </div>
+
+  <div id="summary" class="hidden"></div>
+
+</div>
+
+<script>
+const WORDS = [
+"איגרת","אזרח","אחווה","איכות","אכזבה","מאלתרים","התאשפזתי","בכור","בשורה","זכויותיו",
+"זעיר","חוכמה","עששית","שבה","שבח","קעקוע","קרטעה","ציית","התעטף","נקט",
+"להשתחל","משואות","שווה","מטופחות","טרקתי","נאלם","מתוחכמים","נגאל","כחוש","טבעה",
+"שיטות","עריץ","הכריע","מהולה","טרחה","מקשקשים","קמלו","הארכה","הצטנע","הודעה",
+"נסחפה","מעדו","נעדרת","הפכפך","כהה","הקריא","הוצאות","תעלומה","מערבולות","צווחה",
+"נטיעות","גועש","רביעייה","רעיון","עט","מתעצם","לחלוטין","מקומטת","טענה","התכווץ",
+"קטנטנות","עצום","חרטה","מגוחך","כרך","נעלם","הרהרתי","סואנת","התלהטו","גבוהה"
+];
+
+// ערבוב רנדומלי ללא חזרות
+function shuffle(arr) {
+  return arr
+    .map(v => ({ v, r: Math.random() }))
+    .sort((a, b) => a.r - b.r)
+    .map(o => o.v);
+}
+
+let words = shuffle([...WORDS]);
+let index = 0;
+let mistakes = [];
+
+document.getElementById("total").innerText = words.length;
+
+function playWord() {
+  const player = document.getElementById("player");
+  player.src = `audio/${words[index]}.mp4`;
+  player.play();
+}
+
+function checkAnswer() {
+  const input = document.getElementById("answer");
+  const feedback = document.getElementById("feedback");
+  const user = input.value.trim();
+
+  if (!user) {
+    feedback.innerText = "כתוב מילה לפני הבדיקה";
+    return;
+  }
+
+  if (user === words[index]) {
+    feedback.innerText = "נכון ✔️";
+  } else {
+    feedback.innerText = "לא נכון. המילה: " + words[index];
+    mistakes.push(words[index]);
+  }
+
+  input.value = "";
+  index++;
+
+  if (index >= words.length) {
+    endRound();
+  } else {
+    document.getElementById("current").innerText = index + 1;
+  }
+}
+
+function endRound() {
+  document.getElementById("feedback").innerText = "הסבב הסתיים";
+  document.getElementById("summary").classList.remove("hidden");
+
+  if (mistakes.length === 0) {
+    document.getElementById("summary").innerText =
+      "🎉 מושלם! לא היו טעויות.";
+  } else {
+    document.getElementById("summary").innerHTML =
+      "<strong>מילים שכדאי לחזק:</strong><br>" +
+      mistakes.join(", ");
+  }
+
+  document.getElementById("answer").disabled = true;
+}
+</script>
+
+</body>
+</html>
