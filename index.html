@@ -3,55 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>איות עם פירוש</title>
+<title>איות עם הבנה</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+button, input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 18px;
+}
+.word {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.meaning {
+  font-size: 18px;
+  color: #333;
+}
+#feedback {
+  margin-top: 10px;
+  font-weight: bold;
+}
+#summary {
+  margin-top: 15px;
+  text-align: right;
+}
+.hidden {
+  display: none;
+}
+</style>
 </head>
-<body style="font-family:Arial;text-align:center">
 
-<h2>שומעים – מבינים – מאייתים</h2>
+<body>
 
-<audio id="player"></audio>
+<div class="box">
 
-<button onclick="speak(words[i].word)">🔊 השמע מילה</button>
-<button onclick="speak(words[i].meaning)">🧠 השמע פירוש</button>
+  <!-- שלב החשיפה -->
+  <div id="expose">
+    <div class="word" id="word"></div>
+    <div class="meaning" id="meaning"></div>
+    <button onclick="hideAndAsk()">מוכן, תסתיר</button>
+  </div>
 
-<br><br>
+  <!-- שלב האיות -->
+  <div id="spell" class="hidden">
+    <input
+      id="answer"
+      placeholder="כתוב את המילה מהזיכרון"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <button onclick="checkAnswer()">בדוק</button>
+    <div id="feedback"></div>
+  </div>
 
-<input id="ans" placeholder="כתוב כאן" style="font-size:18px">
+  <div id="summary" class="hidden"></div>
 
-<button onclick="check()">בדוק</button>
-
-<p id="fb"></p>
+</div>
 
 <script>
-const words = [
+const WORDS = [
   { word: "התמעטות", meaning: "הקטנה, נהיה פחות" },
   { word: "תעתועים", meaning: "אשליות" },
-  { word: "מאורעות", meaning: "דברים שקרו" }
+  { word: "התפיחה", meaning: "גדילה, התנפחות" },
+  { word: "הסתאבות", meaning: "קלקול, הידרדרות" },
+  { word: "מאורעות", meaning: "דברים שקרו" },
+  { word: "תסריטאי", meaning: "מי שכותב תסריטים" },
+  { word: "שכשוך", meaning: "נענוע במים" },
+  { word: "התאזר", meaning: "התגבר, התחזק" },
+  { word: "חסכוני", meaning: "לא מבזבז כסף" },
+  { word: "הטפתם", meaning: "דיברתם והזהרתם אחרים" },
+  { word: "מזוכך", meaning: "טהור, נקי" },
+  { word: "הטמעתי", meaning: "הכנסתי ושילבתי" },
+  { word: "החשכה", meaning: "נהיה חושך" },
+  { word: "התחבאתי", meaning: "הסתתרתי" },
+  { word: "תשואה", meaning: "רווח" },
+  { word: "תתרן", meaning: "אדם בלי חוש ריח" },
+  { word: "המלטות", meaning: "בריחה" },
+  { word: "העשרנו", meaning: "הוספנו ידע או כסף" },
+  { word: "הוראותיו", meaning: "הדברים שהוא הורה לעשות" },
+  { word: "אכסנאי", meaning: "אדם שמתארח במקום" },
+  { word: "רוכלות", meaning: "מכירה מדלת לדלת" },
+  { word: "אלונטית", meaning: "מגבת" },
+  { word: "ערכאות", meaning: "בתי משפט" },
+  { word: "כחלחלה", meaning: "כחול בהיר" },
+  { word: "שעטו", meaning: "דהרו, רצו מהר" },
+  { word: "כופתאות", meaning: "כדורי בצק" },
+  { word: "רכיכה", meaning: "בעל חיים בלי עצמות" },
+  { word: "קטיפתי", meaning: "רך כמו קטיפה" },
+  { word: "התחככות", meaning: "חיכוך" },
+  { word: "בעטה", meaning: "נתנה בעיטה" },
+  { word: "וילאות", meaning: "וילונות" },
+  { word: "גבבה", meaning: "פסולת" },
+  { word: "שיטתיות", meaning: "עבודה מסודרת" },
+  { word: "האצתם", meaning: "הגברתם מהירות" },
+  { word: "אסכולה", meaning: "דרך חשיבה" },
+  { word: "תחריט", meaning: "ציור חרוט" },
+  { word: "התפטם", meaning: "השמין" },
+  { word: "סככה", meaning: "מבנה למחסה" },
+  { word: "אזהרה", meaning: "הודעה על סכנה" },
+  { word: "התפלה", meaning: "הוצאת מלח ממים" },
+  { word: "תואנה", meaning: "תירוץ" },
+  { word: "הכאבתם", meaning: "גרמתם לכאב" },
+  { word: "אטפח", meaning: "אגדל, אטפל" },
+  { word: "כמיהה", meaning: "רצון חזק" },
+  { word: "התבטאות", meaning: "דרך דיבור" },
+  { word: "פתפותים", meaning: "דברי שטות" },
+  { word: "עקלתון", meaning: "מפותל" },
+  { word: "השלכתם", meaning: "זרקתם" },
+  { word: "ערובה", meaning: "אחריות" },
+  { word: "התאמת", meaning: "התברר כנכון" }
 ];
 
-let i = 0;
+// ערבוב רנדומלי
+WORDS.sort(() => Math.random() - 0.5);
 
-function speak(text) {
-  const a = document.getElementById("player");
-  a.src =
-    "https://translate.googleapis.com/translate_tts?client=gtx&tl=he&q=" +
-    encodeURIComponent(text);
-  a.play();
+let index = 0;
+let mistakes = [];
+
+function showWord() {
+  document.getElementById("word").innerText = WORDS[index].word;
+  document.getElementById("meaning").innerText =
+    "פירוש: " + WORDS[index].meaning;
 }
 
-function check() {
-  const v = document.getElementById("ans").value.trim();
-  const fb = document.getElementById("fb");
+function hideAndAsk() {
+  document.getElementById("expose").classList.add("hidden");
+  document.getElementById("spell").classList.remove("hidden");
+  document.getElementById("answer").focus();
+}
 
-  if (v === words[i].word) {
+function checkAnswer() {
+  const input = document.getElementById("answer");
+  const fb = document.getElementById("feedback");
+
+  if (input.value.trim() === WORDS[index].word) {
     fb.innerText = "נכון ✔️";
   } else {
-    fb.innerText = "לא נכון. המילה: " + words[i].word;
+    fb.innerText = "לא נכון. המילה הייתה: " + WORDS[index].word;
+    mistakes.push(WORDS[index].word);
   }
 
-  document.getElementById("ans").value = "";
-  i = (i + 1) % words.length;
+  input.value = "";
+  index++;
+
+  if (index >= WORDS.length) {
+    endRound();
+  } else {
+    document.getElementById("spell").classList.add("hidden");
+    document.getElementById("expose").classList.remove("hidden");
+    showWord();
+  }
 }
+
+function endRound() {
+  document.getElementById("spell").classList.add("hidden");
+  document.getElementById("summary").classList.remove("hidden");
+
+  if (mistakes.length === 0) {
+    document.getElementById("summary").innerText =
+      "🎉 סבב מושלם! אין מילים לחיזוק.";
+  } else {
+    document.getElementById("summary").innerHTML =
+      "<strong>מילים שצריך לחזק:</strong><br>" +
+      mistakes.join(", ");
+  }
+}
+
+// התחלה
+showWord();
 </script>
 
 </body>
