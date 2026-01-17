@@ -50,7 +50,6 @@ button, input {
 <body>
 
 <div class="box">
-
   <h2>שומעים – מבינים – מאייתים</h2>
 
   <button onclick="speakWord()">🔊 השמע מילה</button>
@@ -74,7 +73,6 @@ button, input {
   </div>
 
   <div id="summary" class="hidden"></div>
-
 </div>
 
 <script>
@@ -88,69 +86,39 @@ const WORDS = [
   { word: "שכשוך", meaning: "נענוע במים" },
   { word: "התאזר", meaning: "התגבר, התחזק" },
   { word: "חסכוני", meaning: "לא מבזבז כסף" },
-  { word: "הטפתם", meaning: "דיברתם והזהרתם אחרים" },
-  { word: "מזוכך", meaning: "טהור, נקי" },
-  { word: "הטמעתי", meaning: "הכנסתי ושילבתי" },
-  { word: "החשכה", meaning: "נהיה חושך" },
-  { word: "התחבאתי", meaning: "הסתתרתי" },
-  { word: "תשואה", meaning: "רווח" },
-  { word: "תתרן", meaning: "אדם בלי חוש ריח" },
-  { word: "המלטות", meaning: "בריחה" },
-  { word: "העשרנו", meaning: "הוספנו ידע או כסף" },
-  { word: "הוראותיו", meaning: "הדברים שהוא הורה לעשות" },
-  { word: "אכסנאי", meaning: "אדם שמתארח במקום" },
-  { word: "רוכלות", meaning: "מכירה מדלת לדלת" },
-  { word: "אלונטית", meaning: "מגבת" },
-  { word: "ערכאות", meaning: "בתי משפט" },
-  { word: "כחלחלה", meaning: "כחול בהיר" },
-  { word: "שעטו", meaning: "דהרו, רצו מהר" },
-  { word: "כופתאות", meaning: "כדורי בצק" },
-  { word: "רכיכה", meaning: "בעל חיים בלי עצמות" },
-  { word: "קטיפתי", meaning: "רך כמו קטיפה" },
-  { word: "התחככות", meaning: "חיכוך, נגיעה חוזרת" },
-  { word: "בעטה", meaning: "נתנה בעיטה" },
-  { word: "וילאות", meaning: "וילונות" },
-  { word: "גבבה", meaning: "פסולת" },
-  { word: "שיטתיות", meaning: "עבודה מסודרת לפי שיטה" },
-  { word: "האצתם", meaning: "הגברתם מהירות" },
-  { word: "אסכולה", meaning: "דרך חשיבה" },
-  { word: "תחריט", meaning: "ציור חרוט" },
-  { word: "התפטם", meaning: "השמין" },
-  { word: "סככה", meaning: "מבנה פשוט למחסה" },
-  { word: "אזהרה", meaning: "הודעה על סכנה" },
-  { word: "התפלה", meaning: "הוצאת מלח ממים" },
-  { word: "תואנה", meaning: "תירוץ" },
-  { word: "הכאבתם", meaning: "גרמתם לכאב" },
-  { word: "אטפח", meaning: "אגדל, אטפל" },
-  { word: "כמיהה", meaning: "רצון חזק, געגוע" },
-  { word: "התבטאות", meaning: "דרך דיבור" },
-  { word: "פתפותים", meaning: "דברי שטות" },
-  { word: "עקלתון", meaning: "מפותל" },
-  { word: "השלכתם", meaning: "זרקתם" },
-  { word: "ערובה", meaning: "אחריות, ביטחון" },
-  { word: "התאמת", meaning: "התברר כנכון" }
+  { word: "הטפתם", meaning: "דיברתם והזהרתם אחרים" }
 ];
 
-// ערבוב רנדומלי
-function shuffle(arr) {
-  return arr
-    .map(v => ({ v, r: Math.random() }))
-    .sort((a, b) => a.r - b.r)
-    .map(o => o.v);
-}
-
-let words = shuffle([...WORDS]);
+let words = WORDS.sort(() => Math.random() - 0.5);
 let index = 0;
 let mistakes = [];
 
 document.getElementById("total").innerText = words.length;
 
+// --- טיפול נכון בקולות ---
+let voices = [];
+
+function loadVoices() {
+  voices = speechSynthesis.getVoices();
+}
+
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
 function speak(text) {
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "he-IL";
-  u.rate = 0.9;
-  speechSynthesis.speak(u);
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "he-IL";
+  utter.rate = 0.9;
+
+  // בחירה מפורשת של קול עברי אם קיים
+  const hebrewVoice = voices.find(v => v.lang.startsWith("he"));
+  if (hebrewVoice) {
+    utter.voice = hebrewVoice;
+  }
+
+  speechSynthesis.speak(utter);
 }
 
 function speakWord() {
