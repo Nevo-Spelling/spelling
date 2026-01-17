@@ -50,10 +50,13 @@ button, input {
 <body>
 
 <div class="box">
+
+  <audio id="player"></audio>
+
   <h2>שומעים – מבינים – מאייתים</h2>
 
-  <button onclick="speakWord()">🔊 השמע מילה</button>
-  <button onclick="speakMeaning()">🧠 השמע פירוש</button>
+  <button onclick="playText(words[index].word)">🔊 השמע מילה</button>
+  <button onclick="playText(words[index].meaning)">🧠 השמע פירוש</button>
 
   <input
     id="answer"
@@ -73,10 +76,11 @@ button, input {
   </div>
 
   <div id="summary" class="hidden"></div>
+
 </div>
 
 <script>
-const WORDS = [
+const words = [
   { word: "התמעטות", meaning: "הקטנה, נהיה פחות" },
   { word: "תעתועים", meaning: "אשליות, דברים שלא באמת קיימים" },
   { word: "התפיחה", meaning: "גדילה, התנפחות" },
@@ -89,44 +93,20 @@ const WORDS = [
   { word: "הטפתם", meaning: "דיברתם והזהרתם אחרים" }
 ];
 
-let words = WORDS.sort(() => Math.random() - 0.5);
+// ערבוב רנדומלי
+words.sort(() => Math.random() - 0.5);
+
 let index = 0;
 let mistakes = [];
 
 document.getElementById("total").innerText = words.length;
 
-// --- טיפול נכון בקולות ---
-let voices = [];
-
-function loadVoices() {
-  voices = speechSynthesis.getVoices();
-}
-
-speechSynthesis.onvoiceschanged = loadVoices;
-loadVoices();
-
-function speak(text) {
-  speechSynthesis.cancel();
-
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "he-IL";
-  utter.rate = 0.9;
-
-  // בחירה מפורשת של קול עברי אם קיים
-  const hebrewVoice = voices.find(v => v.lang.startsWith("he"));
-  if (hebrewVoice) {
-    utter.voice = hebrewVoice;
-  }
-
-  speechSynthesis.speak(utter);
-}
-
-function speakWord() {
-  speak(words[index].word);
-}
-
-function speakMeaning() {
-  speak(words[index].meaning);
+function playText(text) {
+  const player = document.getElementById("player");
+  const encoded = encodeURIComponent(text);
+  player.src =
+    `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=he&q=${encoded}`;
+  player.play();
 }
 
 function checkAnswer() {
