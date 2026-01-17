@@ -4,143 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>איות עם פירוש</title>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f3f4f6;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-.box {
-  background: white;
-  padding: 18px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-}
-button, input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 18px;
-}
-#feedback {
-  margin-top: 10px;
-  font-weight: bold;
-}
-#progress {
-  margin-top: 8px;
-  font-size: 14px;
-}
-#summary {
-  margin-top: 15px;
-  text-align: right;
-  font-size: 15px;
-}
-.hidden {
-  display: none;
-}
-</style>
 </head>
+<body style="font-family:Arial;text-align:center">
 
-<body>
+<h2>שומעים – מבינים – מאייתים</h2>
 
-<div class="box">
+<audio id="player"></audio>
 
-  <audio id="player"></audio>
+<button onclick="speak(words[i].word)">🔊 השמע מילה</button>
+<button onclick="speak(words[i].meaning)">🧠 השמע פירוש</button>
 
-  <h2>שומעים – מבינים – מאייתים</h2>
+<br><br>
 
-  <button onclick="playText(words[index].word)">🔊 השמע מילה</button>
-  <button onclick="playText(words[index].meaning)">🧠 השמע פירוש</button>
+<input id="ans" placeholder="כתוב כאן" style="font-size:18px">
 
-  <input
-    id="answer"
-    placeholder="כתוב את המילה כאן"
-    autocomplete="off"
-    autocorrect="off"
-    autocapitalize="off"
-    spellcheck="false"
-  >
+<button onclick="check()">בדוק</button>
 
-  <button onclick="checkAnswer()">בדוק</button>
-
-  <div id="feedback"></div>
-
-  <div id="progress">
-    מילה <span id="current">1</span> מתוך <span id="total"></span>
-  </div>
-
-  <div id="summary" class="hidden"></div>
-
-</div>
+<p id="fb"></p>
 
 <script>
 const words = [
   { word: "התמעטות", meaning: "הקטנה, נהיה פחות" },
-  { word: "תעתועים", meaning: "אשליות, דברים שלא באמת קיימים" },
-  { word: "התפיחה", meaning: "גדילה, התנפחות" },
-  { word: "הסתאבות", meaning: "קלקול, הידרדרות" },
-  { word: "מאורעות", meaning: "דברים שקרו, מקרים" },
-  { word: "תסריטאי", meaning: "מי שכותב תסריטים" },
-  { word: "שכשוך", meaning: "נענוע במים" },
-  { word: "התאזר", meaning: "התגבר, התחזק" },
-  { word: "חסכוני", meaning: "לא מבזבז כסף" },
-  { word: "הטפתם", meaning: "דיברתם והזהרתם אחרים" }
+  { word: "תעתועים", meaning: "אשליות" },
+  { word: "מאורעות", meaning: "דברים שקרו" }
 ];
 
-// ערבוב רנדומלי
-words.sort(() => Math.random() - 0.5);
+let i = 0;
 
-let index = 0;
-let mistakes = [];
-
-document.getElementById("total").innerText = words.length;
-
-function playText(text) {
-  const player = document.getElementById("player");
-  const encoded = encodeURIComponent(text);
-  player.src =
-    `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=he&q=${encoded}`;
-  player.play();
+function speak(text) {
+  const a = document.getElementById("player");
+  a.src =
+    "https://translate.googleapis.com/translate_tts?client=gtx&tl=he&q=" +
+    encodeURIComponent(text);
+  a.play();
 }
 
-function checkAnswer() {
-  const input = document.getElementById("answer");
-  const feedback = document.getElementById("feedback");
+function check() {
+  const v = document.getElementById("ans").value.trim();
+  const fb = document.getElementById("fb");
 
-  if (input.value.trim() === words[index].word) {
-    feedback.innerText = "נכון ✔️";
+  if (v === words[i].word) {
+    fb.innerText = "נכון ✔️";
   } else {
-    feedback.innerText = "לא נכון. המילה היא: " + words[index].word;
-    mistakes.push(words[index].word);
+    fb.innerText = "לא נכון. המילה: " + words[i].word;
   }
 
-  input.value = "";
-  index++;
-
-  if (index >= words.length) {
-    endRound();
-  } else {
-    document.getElementById("current").innerText = index + 1;
-  }
-}
-
-function endRound() {
-  document.getElementById("summary").classList.remove("hidden");
-
-  if (mistakes.length === 0) {
-    document.getElementById("summary").innerText =
-      "🎉 סבב מושלם! אין מילים לחיזוק.";
-  } else {
-    document.getElementById("summary").innerHTML =
-      "<strong>מילים שצריך לחזק באיות:</strong><br>" +
-      mistakes.join(", ");
-  }
+  document.getElementById("ans").value = "";
+  i = (i + 1) % words.length;
 }
 </script>
 
