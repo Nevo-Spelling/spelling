@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>איות עם הבנה</title>
+<title>אימון לגמר – איות והבנה</title>
 
 <style>
 body {
@@ -19,14 +19,8 @@ body {
   padding: 20px;
   border-radius: 12px;
   width: 100%;
-  max-width: 420px;
+  max-width: 450px;
   text-align: center;
-}
-button, input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 18px;
 }
 .word {
   font-size: 26px;
@@ -36,6 +30,12 @@ button, input {
 .meaning {
   font-size: 18px;
   color: #333;
+}
+button, input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 18px;
 }
 #feedback {
   margin-top: 10px;
@@ -82,56 +82,54 @@ button, input {
 
 <script>
 const WORDS = [
-  { word: "התמעטות", meaning: "הקטנה, נהיה פחות" },
-  { word: "תעתועים", meaning: "אשליות" },
-  { word: "התפיחה", meaning: "גדילה, התנפחות" },
-  { word: "הסתאבות", meaning: "קלקול, הידרדרות" },
-  { word: "מאורעות", meaning: "דברים שקרו" },
-  { word: "תסריטאי", meaning: "מי שכותב תסריטים" },
-  { word: "שכשוך", meaning: "נענוע במים" },
-  { word: "התאזר", meaning: "התגבר, התחזק" },
-  { word: "חסכוני", meaning: "לא מבזבז כסף" },
-  { word: "הטפתם", meaning: "דיברתם והזהרתם אחרים" },
-  { word: "מזוכך", meaning: "טהור, נקי" },
-  { word: "הטמעתי", meaning: "הכנסתי ושילבתי" },
-  { word: "החשכה", meaning: "נהיה חושך" },
-  { word: "התחבאתי", meaning: "הסתתרתי" },
-  { word: "תשואה", meaning: "רווח" },
-  { word: "תתרן", meaning: "אדם בלי חוש ריח" },
-  { word: "המלטות", meaning: "בריחה" },
-  { word: "העשרנו", meaning: "הוספנו ידע או כסף" },
-  { word: "הוראותיו", meaning: "הדברים שהוא הורה לעשות" },
-  { word: "אכסנאי", meaning: "אדם שמתארח במקום" },
-  { word: "רוכלות", meaning: "מכירה מדלת לדלת" },
-  { word: "אלונטית", meaning: "מגבת" },
-  { word: "ערכאות", meaning: "בתי משפט" },
-  { word: "כחלחלה", meaning: "כחול בהיר" },
-  { word: "שעטו", meaning: "דהרו, רצו מהר" },
-  { word: "כופתאות", meaning: "כדורי בצק" },
-  { word: "רכיכה", meaning: "בעל חיים בלי עצמות" },
-  { word: "קטיפתי", meaning: "רך כמו קטיפה" },
-  { word: "התחככות", meaning: "חיכוך" },
-  { word: "בעטה", meaning: "נתנה בעיטה" },
-  { word: "וילאות", meaning: "וילונות" },
-  { word: "גבבה", meaning: "פסולת" },
-  { word: "שיטתיות", meaning: "עבודה מסודרת" },
-  { word: "האצתם", meaning: "הגברתם מהירות" },
-  { word: "אסכולה", meaning: "דרך חשיבה" },
-  { word: "תחריט", meaning: "ציור חרוט" },
-  { word: "התפטם", meaning: "השמין" },
-  { word: "סככה", meaning: "מבנה למחסה" },
-  { word: "אזהרה", meaning: "הודעה על סכנה" },
-  { word: "התפלה", meaning: "הוצאת מלח ממים" },
-  { word: "תואנה", meaning: "תירוץ" },
-  { word: "הכאבתם", meaning: "גרמתם לכאב" },
-  { word: "אטפח", meaning: "אגדל, אטפל" },
-  { word: "כמיהה", meaning: "רצון חזק" },
-  { word: "התבטאות", meaning: "דרך דיבור" },
-  { word: "פתפותים", meaning: "דברי שטות" },
-  { word: "עקלתון", meaning: "מפותל" },
-  { word: "השלכתם", meaning: "זרקתם" },
-  { word: "ערובה", meaning: "אחריות" },
-  { word: "התאמת", meaning: "התברר כנכון" }
+  { word: "צחנה", meaning: "ריח רע" },
+  { word: "ראשן", meaning: "גלגול של צפרדע" },
+  { word: "תבואה", meaning: "דגן" },
+  { word: "אריח", meaning: "מרצפת" },
+  { word: "מהביל", meaning: "מעלה אדים" },
+  { word: "הארה", meaning: "הפצת אור" },
+  { word: "השתהה", meaning: "התעכב" },
+  { word: "האריך", meaning: "נהיה ארוך יותר" },
+  { word: "מחטיא", meaning: "אינו פוגע במטרה" },
+  { word: "תער", meaning: "סכין גילוח" },
+  { word: "אנחה", meaning: "גניחה" },
+  { word: "דחי", meaning: "כישלון" },
+  { word: "הכלמה", meaning: "העלבה" },
+  { word: "תעוזה", meaning: "אומץ" },
+  { word: "התכה", meaning: "המסת מתכת" },
+  { word: "טחב", meaning: "עובש" },
+  { word: "אזהרה", meaning: "התרעה" },
+  { word: "מהוקצע", meaning: "מלוטש" },
+  { word: "שיטתי", meaning: "לפי סדר מסוים" },
+  { word: "כחוש", meaning: "רזה" },
+  { word: "מכאיב", meaning: "גורם לכאב" },
+  { word: "תסריט", meaning: "סיפור לסרט" },
+  { word: "התמוטט", meaning: "קרס" },
+  { word: "התעטף", meaning: "כיסה את עצמו" },
+  { word: "הלאה", meaning: "הרחק" },
+  { word: "היאבקות", meaning: "התגוששות" },
+  { word: "מעוות", meaning: "מעוקם" },
+  { word: "התאדות", meaning: "תהליך אידוי" },
+  { word: "כירסום", meaning: "נגיסה קטנה" },
+  { word: "מתיחות", meaning: "דריכות" },
+  { word: "איחוי", meaning: "חיבור" },
+  { word: "גנטיקה", meaning: "תורשה" },
+  { word: "הרעשה", meaning: "הקמת רעש" },
+  { word: "מאבטח", meaning: "שומר" },
+  { word: "הסתעפות", meaning: "התפצלות" },
+  { word: "תהודה", meaning: "צליל של הד" },
+  { word: "תוואי", meaning: "סימון של דרך" },
+  { word: "העסקה", meaning: "קבלה לעבודה" },
+  { word: "שבטיות", meaning: "חלוקה לשבטים" },
+  { word: "נאצה", meaning: "קללה" },
+  { word: "העלאה", meaning: "הרמה" },
+  { word: "בעייתי", meaning: "כרוך בקשיים" },
+  { word: "אחסנה", meaning: "שמירה במחסן" },
+  { word: "איטר", meaning: "שמאלי" },
+  { word: "אכזבה", meaning: "מפח נפש" },
+  { word: "הטעמה", meaning: "הדגשה" },
+  { word: "האפלה", meaning: "החשכה" },
+  { word: "הכרחי", meaning: "נחוץ" }
 ];
 
 // ערבוב רנדומלי
@@ -181,10 +179,10 @@ function endRound() {
 
   if (mistakes.length === 0) {
     document.getElementById("summary").innerText =
-      "🎉 סבב מושלם! אין מילים לחיזוק.";
+      "🏆 סבב גמר מושלם! אין מילים לחיזוק.";
   } else {
     document.getElementById("summary").innerHTML =
-      "<strong>מילים שצריך לחזק:</strong><br>" +
+      "<strong>מילים שכדאי לחזק לפני הגמר:</strong><br>" +
       mistakes.join(", ");
   }
 }
