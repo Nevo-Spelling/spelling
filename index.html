@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>אימון לגמר – איות והבנה</title>
+<title>אימון גמר – שליפה מהמשמעות</title>
 
 <style>
 body {
@@ -22,14 +22,9 @@ body {
   max-width: 450px;
   text-align: center;
 }
-.word {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
 .meaning {
-  font-size: 18px;
-  color: #333;
+  font-size: 20px;
+  margin-bottom: 15px;
 }
 button, input {
   width: 100%;
@@ -55,18 +50,12 @@ button, input {
 
 <div class="box">
 
-  <!-- שלב החשיפה -->
-  <div id="expose">
-    <div class="word" id="word"></div>
+  <!-- שלב הפירוש -->
+  <div id="question">
     <div class="meaning" id="meaning"></div>
-    <button onclick="hideAndAsk()">מוכן, תסתיר</button>
-  </div>
-
-  <!-- שלב האיות -->
-  <div id="spell" class="hidden">
     <input
       id="answer"
-      placeholder="כתוב את המילה מהזיכרון"
+      placeholder="כתוב את המילה המתאימה"
       autocomplete="off"
       autocorrect="off"
       autocapitalize="off"
@@ -138,16 +127,9 @@ WORDS.sort(() => Math.random() - 0.5);
 let index = 0;
 let mistakes = [];
 
-function showWord() {
-  document.getElementById("word").innerText = WORDS[index].word;
+function showMeaning() {
   document.getElementById("meaning").innerText =
     "פירוש: " + WORDS[index].meaning;
-}
-
-function hideAndAsk() {
-  document.getElementById("expose").classList.add("hidden");
-  document.getElementById("spell").classList.remove("hidden");
-  document.getElementById("answer").focus();
 }
 
 function checkAnswer() {
@@ -157,7 +139,7 @@ function checkAnswer() {
   if (input.value.trim() === WORDS[index].word) {
     fb.innerText = "נכון ✔️";
   } else {
-    fb.innerText = "לא נכון. המילה הייתה: " + WORDS[index].word;
+    fb.innerText = "לא נכון. המילה היא: " + WORDS[index].word;
     mistakes.push(WORDS[index].word);
   }
 
@@ -167,28 +149,26 @@ function checkAnswer() {
   if (index >= WORDS.length) {
     endRound();
   } else {
-    document.getElementById("spell").classList.add("hidden");
-    document.getElementById("expose").classList.remove("hidden");
-    showWord();
+    showMeaning();
   }
 }
 
 function endRound() {
-  document.getElementById("spell").classList.add("hidden");
+  document.getElementById("question").classList.add("hidden");
   document.getElementById("summary").classList.remove("hidden");
 
   if (mistakes.length === 0) {
     document.getElementById("summary").innerText =
-      "🏆 סבב גמר מושלם! אין מילים לחיזוק.";
+      "🏆 סבב מושלם! כל המילים נשלפו נכון.";
   } else {
     document.getElementById("summary").innerHTML =
-      "<strong>מילים שכדאי לחזק לפני הגמר:</strong><br>" +
+      "<strong>מילים שצריך לחזק:</strong><br>" +
       mistakes.join(", ");
   }
 }
 
 // התחלה
-showWord();
+showMeaning();
 </script>
 
 </body>
