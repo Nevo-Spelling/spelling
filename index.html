@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>אימון גמר – שליפה מהמשמעות</title>
+<title>אימון איות – גמר</title>
 
 <style>
 body {
@@ -19,12 +19,17 @@ body {
   padding: 20px;
   border-radius: 12px;
   width: 100%;
-  max-width: 450px;
+  max-width: 460px;
   text-align: center;
 }
+.word {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
 .meaning {
-  font-size: 20px;
-  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
 }
 button, input {
   width: 100%;
@@ -50,12 +55,18 @@ button, input {
 
 <div class="box">
 
-  <!-- שלב הפירוש -->
-  <div id="question">
+  <!-- שלב החשיפה -->
+  <div id="expose">
+    <div class="word" id="word"></div>
     <div class="meaning" id="meaning"></div>
+    <button onclick="hideAndAsk()">מוכן, תסתיר</button>
+  </div>
+
+  <!-- שלב האיות -->
+  <div id="spell" class="hidden">
     <input
       id="answer"
-      placeholder="כתוב את המילה המתאימה"
+      placeholder="כתוב את המילה מהזיכרון"
       autocomplete="off"
       autocorrect="off"
       autocapitalize="off"
@@ -65,12 +76,13 @@ button, input {
     <div id="feedback"></div>
   </div>
 
+  <!-- סיכום -->
   <div id="summary" class="hidden"></div>
 
 </div>
 
 <script>
-const WORDS = [
+const ORIGINAL_WORDS = [
   { word: "צחנה", meaning: "ריח רע" },
   { word: "ראשן", meaning: "גלגול של צפרדע" },
   { word: "תבואה", meaning: "דגן" },
@@ -121,54 +133,81 @@ const WORDS = [
   { word: "הכרחי", meaning: "נחוץ" }
 ];
 
-// ערבוב רנדומלי
-WORDS.sort(() => Math.random() - 0.5);
+// ערבוב
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
 
+let words = shuffle([...ORIGINAL_WORDS]);
 let index = 0;
 let mistakes = [];
+let round = 1;
 
-function showMeaning() {
+function showWord() {
+  document.getElementById("word").innerText = words[index].word;
   document.getElementById("meaning").innerText =
-    "פירוש: " + WORDS[index].meaning;
+    "פירוש: " + words[index].meaning;
+}
+
+function hideAndAsk() {
+  document.getElementById("expose").classList.add("hidden");
+  document.getElementById("spell").classList.remove("hidden");
+  document.getElementById("answer").focus();
 }
 
 function checkAnswer() {
   const input = document.getElementById("answer");
   const fb = document.getElementById("feedback");
 
-  if (input.value.trim() === WORDS[index].word) {
+  if (input.value.trim() === words[index].word) {
     fb.innerText = "נכון ✔️";
   } else {
-    fb.innerText = "לא נכון. המילה היא: " + WORDS[index].word;
-    mistakes.push(WORDS[index].word);
+    fb.innerText = "לא נכון. המילה הייתה: " + words[index].word;
+    mistakes.push(words[index]);
   }
 
   input.value = "";
   index++;
 
-  if (index >= WORDS.length) {
+  if (index >= words.length) {
     endRound();
   } else {
-    showMeaning();
+    document.getElementById("spell").classList.add("hidden");
+    document.getElementById("expose").classList.remove("hidden");
+    showWord();
   }
 }
 
 function endRound() {
-  document.getElementById("question").classList.add("hidden");
-  document.getElementById("summary").classList.remove("hidden");
+  document.getElementById("spell").classList.add("hidden");
+  document.getElementById("expose").classList.add("hidden");
+  const summary = document.getElementById("summary");
+  summary.classList.remove("hidden");
 
   if (mistakes.length === 0) {
-    document.getElementById("summary").innerText =
-      "🏆 סבב מושלם! כל המילים נשלפו נכון.";
+    summary.innerHTML =
+      "🏆 סבב " + round + " מושלם! אין טעויות.<br><br>נבו מוכן לגמר.";
   } else {
-    document.getElementById("summary").innerHTML =
+    summary.innerHTML =
       "<strong>מילים שצריך לחזק:</strong><br>" +
-      mistakes.join(", ");
+      mistakes.map(w => w.word).join(", ") +
+      "<br><br><button onclick='startReinforcement()'>🔁 סבב חיזוק</button>";
   }
 }
 
+function startReinforcement() {
+  round = 2;
+  words = shuffle([...mistakes]);
+  mistakes = [];
+  index = 0;
+
+  document.getElementById("summary").classList.add("hidden");
+  document.getElementById("expose").classList.remove("hidden");
+  showWord();
+}
+
 // התחלה
-showMeaning();
+showWord();
 </script>
 
 </body>
