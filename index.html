@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>אימון איות – גמר</title>
+<title>Romanian Trainer B1</title>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background: #f3f4f6;
+  font-family: Arial;
+  background: #f2f2f2;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,198 +17,127 @@ body {
 .box {
   background: white;
   padding: 20px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 460px;
+  border-radius: 10px;
+  width: 400px;
   text-align: center;
-}
-.word {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-.meaning {
-  font-size: 18px;
-  color: #333;
 }
 button, input {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   margin-top: 10px;
-  font-size: 18px;
+  font-size: 16px;
 }
 #feedback {
   margin-top: 10px;
   font-weight: bold;
 }
-#summary {
-  margin-top: 15px;
-  text-align: right;
-}
-.hidden {
-  display: none;
-}
 </style>
 </head>
-
 <body>
 
 <div class="box">
-
-  <!-- שלב החשיפה -->
-  <div id="expose">
-    <div class="word" id="word"></div>
-    <div class="meaning" id="meaning"></div>
-    <button onclick="hideAndAsk()">מוכן, תסתיר</button>
-  </div>
-
-  <!-- שלב האיות -->
-  <div id="spell" class="hidden">
-    <input
-      id="answer"
-      placeholder="כתוב את המילה מהזיכרון"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-    >
-    <button onclick="checkAnswer()">בדוק</button>
-    <div id="feedback"></div>
-  </div>
-
-  <!-- סיכום -->
-  <div id="summary" class="hidden"></div>
-
+  <h2>Romanian B1 Smart Mode</h2>
+  <div id="question"></div>
+  <input id="answer" placeholder="Type your answer">
+  <button onclick="checkAnswer()">Check</button>
+  <div id="feedback"></div>
 </div>
 
 <script>
-const ORIGINAL_WORDS = [
-  { word: "צחנה", meaning: "ריח רע" },
-  { word: "ראשן", meaning: "גלגול של צפרדע" },
-  { word: "תבואה", meaning: "דגן" },
-  { word: "אריח", meaning: "מרצפת" },
-  { word: "מהביל", meaning: "מעלה אדים" },
-  { word: "הארה", meaning: "הפצת אור" },
-  { word: "השתהה", meaning: "התעכב" },
-  { word: "האריך", meaning: "נהיה ארוך יותר" },
-  { word: "מחטיא", meaning: "אינו פוגע במטרה" },
-  { word: "תער", meaning: "סכין גילוח" },
-  { word: "אנחה", meaning: "גניחה" },
-  { word: "דחי", meaning: "כישלון" },
-  { word: "הכלמה", meaning: "העלבה" },
-  { word: "תעוזה", meaning: "אומץ" },
-  { word: "התכה", meaning: "המסת מתכת" },
-  { word: "טחב", meaning: "עובש" },
-  { word: "אזהרה", meaning: "התרעה" },
-  { word: "מהוקצע", meaning: "מלוטש" },
-  { word: "שיטתי", meaning: "לפי סדר מסוים" },
-  { word: "כחוש", meaning: "רזה" },
-  { word: "מכאיב", meaning: "גורם לכאב" },
-  { word: "תסריט", meaning: "סיפור לסרט" },
-  { word: "התמוטט", meaning: "קרס" },
-  { word: "התעטף", meaning: "כיסה את עצמו" },
-  { word: "הלאה", meaning: "הרחק" },
-  { word: "היאבקות", meaning: "התגוששות" },
-  { word: "מעוות", meaning: "מעוקם" },
-  { word: "התאדות", meaning: "תהליך אידוי" },
-  { word: "כירסום", meaning: "נגיסה קטנה" },
-  { word: "מתיחות", meaning: "דריכות" },
-  { word: "איחוי", meaning: "חיבור" },
-  { word: "גנטיקה", meaning: "תורשה" },
-  { word: "הרעשה", meaning: "הקמת רעש" },
-  { word: "מאבטח", meaning: "שומר" },
-  { word: "הסתעפות", meaning: "התפצלות" },
-  { word: "תהודה", meaning: "צליל של הד" },
-  { word: "תוואי", meaning: "סימון של דרך" },
-  { word: "העסקה", meaning: "קבלה לעבודה" },
-  { word: "שבטיות", meaning: "חלוקה לשבטים" },
-  { word: "נאצה", meaning: "קללה" },
-  { word: "העלאה", meaning: "הרמה" },
-  { word: "בעייתי", meaning: "כרוך בקשיים" },
-  { word: "אחסנה", meaning: "שמירה במחסן" },
-  { word: "איטר", meaning: "שמאלי" },
-  { word: "אכזבה", meaning: "מפח נפש" },
-  { word: "הטעמה", meaning: "הדגשה" },
-  { word: "האפלה", meaning: "החשכה" },
-  { word: "הכרחי", meaning: "נחוץ" }
+
+const vocab = [
+  { ro: "muncă", en: "work" },
+  { ro: "problemă", en: "problem" },
+  { ro: "răspuns", en: "answer" },
+  { ro: "motiv", en: "reason" },
+  { ro: "primăvară", en: "spring" },
+  { ro: "roșu", en: "red" },
+  { ro: "măr", en: "apple" },
+  { ro: "morcov", en: "carrot" }
 ];
 
-// ערבוב
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
+const verbs = [
+  {
+    infinitive: "a merge",
+    en: "to go",
+    forms: {
+      "I": "merg",
+      "you": "mergi",
+      "he": "merge",
+      "we": "mergem",
+      "you(pl)": "mergeți",
+      "they": "merg"
+    }
+  },
+  {
+    infinitive: "a avea",
+    en: "to have",
+    forms: {
+      "I": "am",
+      "you": "ai",
+      "he": "are",
+      "we": "avem",
+      "you(pl)": "aveți",
+      "they": "au"
+    }
+  }
+];
+
+let current = {};
+let mode = "";
+
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-let words = shuffle([...ORIGINAL_WORDS]);
-let index = 0;
-let mistakes = [];
-let round = 1;
+function generateQuestion() {
+  const rand = Math.random();
 
-function showWord() {
-  document.getElementById("word").innerText = words[index].word;
-  document.getElementById("meaning").innerText =
-    "פירוש: " + words[index].meaning;
-}
+  if (rand < 0.5) {
+    mode = "conjugation";
+    const verb = randomItem(verbs);
+    const persons = Object.keys(verb.forms);
+    const person = randomItem(persons);
+    current = {
+      correct: verb.forms[person],
+      question: `${person} ${verb.en}`
+    };
+  }
+  else if (rand < 0.8) {
+    mode = "en-ro";
+    const item = randomItem(vocab);
+    current = {
+      correct: item.ro,
+      question: item.en
+    };
+  }
+  else {
+    mode = "ro-en";
+    const item = randomItem(vocab);
+    current = {
+      correct: item.en,
+      question: item.ro
+    };
+  }
 
-function hideAndAsk() {
-  document.getElementById("expose").classList.add("hidden");
-  document.getElementById("spell").classList.remove("hidden");
-  document.getElementById("answer").focus();
+  document.getElementById("question").innerText = current.question;
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").innerText = "";
 }
 
 function checkAnswer() {
-  const input = document.getElementById("answer");
-  const fb = document.getElementById("feedback");
-
-  if (input.value.trim() === words[index].word) {
-    fb.innerText = "נכון ✔️";
+  const input = document.getElementById("answer").value.trim().toLowerCase();
+  if (input === current.correct.toLowerCase()) {
+    document.getElementById("feedback").innerText = "Correct ✔️";
   } else {
-    fb.innerText = "לא נכון. המילה הייתה: " + words[index].word;
-    mistakes.push(words[index]);
+    document.getElementById("feedback").innerText =
+      "Wrong. Correct: " + current.correct;
   }
-
-  input.value = "";
-  index++;
-
-  if (index >= words.length) {
-    endRound();
-  } else {
-    document.getElementById("spell").classList.add("hidden");
-    document.getElementById("expose").classList.remove("hidden");
-    showWord();
-  }
+  setTimeout(generateQuestion, 800);
 }
 
-function endRound() {
-  document.getElementById("spell").classList.add("hidden");
-  document.getElementById("expose").classList.add("hidden");
-  const summary = document.getElementById("summary");
-  summary.classList.remove("hidden");
+generateQuestion();
 
-  if (mistakes.length === 0) {
-    summary.innerHTML =
-      "🏆 סבב " + round + " מושלם! אין טעויות.<br><br>נבו מוכן לגמר.";
-  } else {
-    summary.innerHTML =
-      "<strong>מילים שצריך לחזק:</strong><br>" +
-      mistakes.map(w => w.word).join(", ") +
-      "<br><br><button onclick='startReinforcement()'>🔁 סבב חיזוק</button>";
-  }
-}
-
-function startReinforcement() {
-  round = 2;
-  words = shuffle([...mistakes]);
-  mistakes = [];
-  index = 0;
-
-  document.getElementById("summary").classList.add("hidden");
-  document.getElementById("expose").classList.remove("hidden");
-  showWord();
-}
-
-// התחלה
-showWord();
 </script>
-
 </body>
 </html>
