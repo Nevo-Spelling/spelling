@@ -158,7 +158,13 @@ function start(cat){
   loadItem();
 }
 
-function setMode(m){ mode=m; }
+function setMode(m){
+  mode = m;
+  index = 0;
+  reinforcement = [];
+  examResults = [];
+  loadItem();
+}
 
 function loadItem(){
   if(index>=currentCategory.length){
@@ -202,19 +208,16 @@ function buildTestFields(container){
 
   if(currentItem.type==="verb"){
     container.innerHTML+=`<input id="inf" placeholder="Infinitive">`;
+    container.innerHTML+=`<div id="inf_correct" class="correctAnswer"></div>`;
     for(let p in currentItem.forms){
       container.innerHTML+=`<input id="${p}" placeholder="${p}">`;
-      if(mode!=="exam"){
-        container.innerHTML+=`<div id="${p}_correct" class="correctAnswer"></div>`;
-      }
+      container.innerHTML+=`<div id="${p}_correct" class="correctAnswer"></div>`;
     }
   }
 
   if(currentItem.type==="noun"){
     container.innerHTML+=`<input id="translation" placeholder="Translation">`;
-    if(mode!=="exam"){
-      container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
-    }
+    container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
     container.innerHTML+=`
       <select id="gender">
         <option value="">Select gender</option>
@@ -222,20 +225,14 @@ function buildTestFields(container){
         <option value="feminine">feminine</option>
         <option value="neuter">neuter</option>
       </select>`;
-    if(mode!=="exam"){
-      container.innerHTML+=`<div id="gender_correct" class="correctAnswer"></div>`;
-    }
+    container.innerHTML+=`<div id="gender_correct" class="correctAnswer"></div>`;
     container.innerHTML+=`<input id="plural" placeholder="Plural">`;
-    if(mode!=="exam"){
-      container.innerHTML+=`<div id="plural_correct" class="correctAnswer"></div>`;
-    }
+    container.innerHTML+=`<div id="plural_correct" class="correctAnswer"></div>`;
   }
 
   if(currentItem.type==="word"){
     container.innerHTML+=`<input id="translation" placeholder="Translation">`;
-    if(mode!=="exam"){
-      container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
-    }
+    container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
   }
 }
 
