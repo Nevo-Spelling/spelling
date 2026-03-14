@@ -3,161 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Romanian Trainer</title>
+<title>Romanian Full Trainer</title>
 
 <style>
 body{font-family:Arial;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:900px;text-align:center}
+.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:1100px;text-align:center}
 button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
 .word{font-size:22px;font-weight:bold;margin-bottom:10px}
-.hidden{display:none}
 .error{border:2px solid red}
 .correctAnswer{font-size:12px;color:red;margin-bottom:4px}
 #feedback{margin-top:10px;font-weight:bold}
-.row button{width:48%;display:inline-block}
-.stats{margin-top:15px;text-align:left;font-size:14px}
 </style>
 </head>
 <body>
 
 <div class="box">
 
-<h2>Romanian Trainer</h2>
+<h2>Romanian Trainer – FULL VERSION</h2>
 
-<div id="menu">
-  <div class="row">
-    <button onclick="start('verbs')">Verbs</button>
-    <button onclick="start('nouns')">Nouns</button>
-  </div>
-  <button onclick="start('mixed')">Mixed</button>
+<button onclick="start()">Start Training</button>
+<button onclick="setMode('study')">Study</button>
+<button onclick="setMode('test')">Test</button>
 
-  <div class="row">
-    <button onclick="setMode('study')">Study</button>
-    <button onclick="setMode('test')">Test</button>
-  </div>
-
-  <button onclick="showStats()">Statistics</button>
-</div>
-
-<div id="trainer" class="hidden">
+<div id="trainer" style="display:none;">
   <div class="word" id="word"></div>
   <div id="fields"></div>
   <button onclick="checkAnswer()">Check</button>
   <div id="feedback"></div>
   <button onclick="nextItem()">Next</button>
-  <button onclick="backToMenu()">Back</button>
 </div>
-
-<div id="statistics" class="hidden stats"></div>
 
 </div>
 
 <script>
 
-/* ===== DATABASE ===== */
+/* ================= FULL DATABASE ================= */
 
-const DATA = {
+const DATA = [
 
-verbs:[
-{type:"verb",ro:"a merge",en:"to go",he:"ללכת",
-forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}},
+/* ===== VERBS ===== */
 
-{type:"verb",ro:"a avea",en:"to have",he:"יש",
-forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}},
+{
+type:"verb",
+ro:"a merge", en:"to go", he:"ללכת",
+forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}
+},
+{
+type:"verb",
+ro:"a avea", en:"to have", he:"יש",
+forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}
+},
+{
+type:"verb",
+ro:"a învăța", en:"to learn", he:"ללמוד",
+forms:{eu:"învăț",tu:"înveți",el:"învață",noi:"învățăm",voi:"învățați",ei:"învață"}
+},
+{
+type:"verb",
+ro:"a cumpăra", en:"to buy", he:"לקנות",
+forms:{eu:"cumpăr",tu:"cumperi",el:"cumpără",noi:"cumpărăm",voi:"cumpărați",ei:"cumpără"}
+},
 
-{type:"verb",ro:"a învăța",en:"to learn",he:"ללמוד",
-forms:{eu:"învăț",tu:"înveți",el:"învață",noi:"învățăm",voi:"învățați",ei:"învață"}}
-],
+/* ===== NOUNS ===== */
 
-nouns:[
-{type:"noun",ro:"copil",en:"child",he:"ילד",gender:"masculine",plural:"copii"},
-{type:"noun",ro:"oraș",en:"city",he:"עיר",gender:"neuter",plural:"orașe"},
-{type:"noun",ro:"copac",en:"tree",he:"עץ",gender:"masculine",plural:"copaci"}
-]
+{
+type:"noun",
+ro:"copil", en:"child", he:"ילד",
+gender:"masculine", plural:"copii"
+},
+{
+type:"noun",
+ro:"copac", en:"tree", he:"עץ",
+gender:"masculine", plural:"copaci"
+},
+{
+type:"noun",
+ro:"oraș", en:"city", he:"עיר",
+gender:"neuter", plural:"orașe"
+},
+{
+type:"noun",
+ro:"fustă", en:"skirt", he:"חצאית",
+gender:"feminine", plural:"fuste"
+},
+{
+type:"noun",
+ro:"măr", en:"apple", he:"תפוח",
+gender:"neuter", plural:"mere"
+},
 
-};
+/* ===== VEGETABLES ===== */
 
-/* ===== STATE ===== */
+{
+type:"noun",
+ro:"cartof", en:"potato", he:"תפוח אדמה",
+gender:"masculine", plural:"cartofi"
+},
+{
+type:"noun",
+ro:"morcov", en:"carrot", he:"גזר",
+gender:"masculine", plural:"morcovi"
+},
+{
+type:"noun",
+ro:"ardei", en:"pepper", he:"פלפל",
+gender:"masculine", plural:"ardei"
+},
+{
+type:"noun",
+ro:"ceapă", en:"onion", he:"בצל",
+gender:"feminine", plural:"cepe"
+},
 
-let currentCategory=[];
-let currentItem=null;
-let index=0;
-let mode="study";
-let reinforcement=[];
+/* ===== FRUITS ===== */
 
-/* ===== STORAGE ===== */
+{
+type:"noun",
+ro:"pară", en:"pear", he:"אגס",
+gender:"feminine", plural:"pere"
+},
+{
+type:"noun",
+ro:"portocală", en:"orange", he:"תפוז",
+gender:"feminine", plural:"portocale"
+},
+{
+type:"noun",
+ro:"căpșună", en:"strawberry", he:"תות",
+gender:"feminine", plural:"căpșuni"
+},
 
-function saveStats(data){
-  localStorage.setItem("roStats",JSON.stringify(data));
-}
-function getStats(){
-  return JSON.parse(localStorage.getItem("roStats")||"{}");
-}
-function updateStats(correct){
-  let s=getStats();
-  s.total=(s.total||0)+1;
-  if(correct) s.correct=(s.correct||0)+1;
-  saveStats(s);
-}
+/* ===== COLORS ===== */
 
-/* ===== FLOW ===== */
+{type:"word",ro:"roșu",en:"red",he:"אדום"},
+{type:"word",ro:"albastru",en:"blue",he:"כחול"},
+{type:"word",ro:"verde",en:"green",he:"ירוק"},
+{type:"word",ro:"galben",en:"yellow",he:"צהוב"},
+{type:"word",ro:"negru",en:"black",he:"שחור"},
+{type:"word",ro:"alb",en:"white",he:"לבן"},
 
-function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
+/* ===== DAYS OF WEEK ===== */
 
-function start(cat){
-  if(cat==="mixed"){
-    currentCategory=shuffle([...DATA.verbs,...DATA.nouns]);
-  }else{
-    currentCategory=shuffle(DATA[cat]);
-  }
-  index=0;
-  reinforcement=[];
-  document.getElementById("menu").classList.add("hidden");
-  document.getElementById("trainer").classList.remove("hidden");
+{type:"word",ro:"luni",en:"Monday",he:"יום שני"},
+{type:"word",ro:"marți",en:"Tuesday",he:"יום שלישי"},
+{type:"word",ro:"miercuri",en:"Wednesday",he:"יום רביעי"},
+{type:"word",ro:"joi",en:"Thursday",he:"יום חמישי"},
+{type:"word",ro:"vineri",en:"Friday",he:"יום שישי"},
+{type:"word",ro:"sâmbătă",en:"Saturday",he:"שבת"},
+{type:"word",ro:"duminică",en:"Sunday",he:"יום ראשון"},
+
+/* ===== CONNECTORS / TIME / PREPOSITIONS ===== */
+
+{type:"word",ro:"acum",en:"now",he:"עכשיו"},
+{type:"word",ro:"mereu",en:"always",he:"תמיד"},
+{type:"word",ro:"niciodată",en:"never",he:"אף פעם"},
+{type:"word",ro:"până",en:"until",he:"עד"},
+{type:"word",ro:"între",en:"between",he:"בין"},
+{type:"word",ro:"lângă",en:"next to",he:"ליד"},
+{type:"word",ro:"pentru că",en:"because",he:"כי"},
+{type:"word",ro:"dar",en:"but",he:"אבל"},
+{type:"word",ro:"și",en:"and",he:"ו"}
+];
+
+/* ================= ENGINE ================= */
+
+let index = 0;
+let mode = "study";
+
+function shuffle(arr){ arr.sort(()=>Math.random()-0.5); }
+
+function start(){
+  shuffle(DATA);
+  index = 0;
+  document.getElementById("trainer").style.display="block";
   loadItem();
 }
 
 function setMode(m){
-  mode=m;
-  index=0;
-  reinforcement=[];
+  mode = m;
   loadItem();
 }
 
 function loadItem(){
-  if(index>=currentCategory.length){
-    if(reinforcement.length>0){
-      alert("Reinforcement Round");
-      currentCategory=shuffle(reinforcement);
-      reinforcement=[];
-      index=0;
-    }else{
-      alert("Round Finished");
-      backToMenu();
-      return;
-    }
+  if(index >= DATA.length){
+    alert("Finished");
+    return;
   }
 
-  currentItem=currentCategory[index];
-  document.getElementById("word").innerText=currentItem.ro;
-  const container=document.getElementById("fields");
-  container.innerHTML="";
-  document.getElementById("feedback").innerText="";
+  const item = DATA[index];
+  document.getElementById("word").innerText = item.ro;
+  const fields = document.getElementById("fields");
+  fields.innerHTML = "";
+  document.getElementById("feedback").innerText = "";
 
-  if(mode==="study"){
-    container.innerHTML=`<button onclick="showStudy()">Show Meaning</button>
-      <div id="studyBox" class="hidden"></div>`;
-  }else{
-    if(currentItem.type==="verb"){
-      container.innerHTML=`<input id="inf" placeholder="Infinitive">`;
-      for(let p in currentItem.forms){
-        container.innerHTML+=`<input id="${p}" placeholder="${p}">`;
-        container.innerHTML+=`<div id="${p}_correct" class="correctAnswer"></div>`;
+  if(mode === "study"){
+    fields.innerHTML = "<button onclick='showStudy()'>Show Meaning</button><div id='studyBox'></div>";
+  } else {
+
+    if(item.type === "verb"){
+      fields.innerHTML = "<input id='inf' placeholder='Infinitive'>";
+      for(let p in item.forms){
+        fields.innerHTML += `<input id="${p}" placeholder="${p}">`;
+        fields.innerHTML += `<div id="${p}_correct" class="correctAnswer"></div>`;
       }
     }
 
-    if(currentItem.type==="noun"){
-      container.innerHTML=`
+    if(item.type === "noun"){
+      fields.innerHTML = `
         <input id="translation" placeholder="Translation">
         <div id="translation_correct" class="correctAnswer"></div>
         <select id="gender">
@@ -171,97 +223,89 @@ function loadItem(){
         <div id="plural_correct" class="correctAnswer"></div>
       `;
     }
+
+    if(item.type === "word"){
+      fields.innerHTML = "<input id='translation' placeholder='Translation'>";
+    }
   }
 }
 
 function showStudy(){
-  const box=document.getElementById("studyBox");
-  let html=`<b>English:</b> ${currentItem.en}<br>
-            <b>עברית:</b> ${currentItem.he}<br>`;
-  if(currentItem.type==="noun"){
-    html+=`<b>Gender:</b> ${currentItem.gender}<br>
-           <b>Plural:</b> ${currentItem.plural}<br>`;
+  const item = DATA[index];
+  let html = `<b>English:</b> ${item.en}<br><b>עברית:</b> ${item.he}<br>`;
+  if(item.type === "noun"){
+    html += `<b>Gender:</b> ${item.gender}<br><b>Plural:</b> ${item.plural}<br>`;
   }
-  if(currentItem.type==="verb"){
-    html+=`<b>Present:</b><br>`;
-    for(let p in currentItem.forms){
-      html+=`${p}: ${currentItem.forms[p]}<br>`;
+  if(item.type === "verb"){
+    html += "<b>Present:</b><br>";
+    for(let p in item.forms){
+      html += `${p}: ${item.forms[p]}<br>`;
     }
   }
-  box.innerHTML=html;
-  box.classList.remove("hidden");
+  document.getElementById("studyBox").innerHTML = html;
 }
 
 function checkAnswer(){
-  let correct=true;
+  const item = DATA[index];
+  let correct = true;
 
-  if(currentItem.type==="verb"){
-    const inf=document.getElementById("inf");
-    if(inf.value.trim().toLowerCase()!==currentItem.en.toLowerCase()
-      && inf.value.trim().toLowerCase()!==currentItem.he.toLowerCase()){
-      correct=false;
+  if(item.type === "verb"){
+    const inf = document.getElementById("inf");
+    if(inf.value.trim().toLowerCase() !== item.en.toLowerCase()){
+      correct = false;
       inf.classList.add("error");
     }
-    for(let p in currentItem.forms){
-      const field=document.getElementById(p);
-      if(field.value.trim()!==currentItem.forms[p]){
-        correct=false;
+    for(let p in item.forms){
+      const field = document.getElementById(p);
+      if(field.value.trim() !== item.forms[p]){
+        correct = false;
         field.classList.add("error");
-        document.getElementById(p+"_correct").innerText=
-          "Correct: "+currentItem.forms[p];
-        reinforcement.push(currentItem);
+        document.getElementById(p+"_correct").innerText =
+          "Correct: " + item.forms[p];
       }
     }
   }
 
-  if(currentItem.type==="noun"){
-    const tr=document.getElementById("translation");
-    const gen=document.getElementById("gender");
-    const pl=document.getElementById("plural");
+  if(item.type === "noun"){
+    const tr = document.getElementById("translation");
+    const gen = document.getElementById("gender");
+    const pl = document.getElementById("plural");
 
-    if(tr.value.trim().toLowerCase()!==currentItem.en.toLowerCase()
-      && tr.value.trim().toLowerCase()!==currentItem.he.toLowerCase()){
-      correct=false;
+    if(tr.value.trim().toLowerCase() !== item.en.toLowerCase()){
+      correct = false;
       tr.classList.add("error");
     }
 
-    if(gen.value!==currentItem.gender){
-      correct=false;
+    if(gen.value !== item.gender){
+      correct = false;
       gen.classList.add("error");
-      reinforcement.push(currentItem);
+      document.getElementById("gender_correct").innerText =
+        "Correct: " + item.gender;
     }
 
-    if(pl.value.trim()!==currentItem.plural){
-      correct=false;
+    if(pl.value.trim() !== item.plural){
+      correct = false;
       pl.classList.add("error");
-      reinforcement.push(currentItem);
+      document.getElementById("plural_correct").innerText =
+        "Correct: " + item.plural;
     }
   }
 
-  updateStats(correct);
-  document.getElementById("feedback").innerText=
-    correct?"Correct ✔️":"Errors shown above";
+  if(item.type === "word"){
+    const tr = document.getElementById("translation");
+    if(tr.value.trim().toLowerCase() !== item.en.toLowerCase()){
+      correct = false;
+      tr.classList.add("error");
+    }
+  }
+
+  document.getElementById("feedback").innerText =
+    correct ? "Correct ✔️" : "Errors shown above";
 }
 
 function nextItem(){
   index++;
   loadItem();
-}
-
-function showStats(){
-  const s=getStats();
-  const percent=s.total?Math.round((s.correct/s.total)*100):0;
-  document.getElementById("statistics").classList.remove("hidden");
-  document.getElementById("statistics").innerHTML=
-    `<b>Total Attempts:</b> ${s.total||0}<br>
-     <b>Correct:</b> ${s.correct||0}<br>
-     <b>Success Rate:</b> ${percent}%`;
-}
-
-function backToMenu(){
-  document.getElementById("trainer").classList.add("hidden");
-  document.getElementById("menu").classList.remove("hidden");
-  document.getElementById("statistics").classList.add("hidden");
 }
 
 </script>
