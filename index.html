@@ -63,53 +63,7 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
 
 <script>
 
-/* ================= DATA ================= */
-
-const DATA = {
-
-verbs:[
-{type:"verb",ro:"a merge",en:"to go",he:"ללכת",
- forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}},
-{type:"verb",ro:"a avea",en:"to have",he:"יש",
- forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}},
-{type:"verb",ro:"a spune",en:"to say",he:"לומר",
- forms:{eu:"spun",tu:"spui",el:"spune",noi:"spunem",voi:"spuneți",ei:"spun"}},
-{type:"verb",ro:"a învăța",en:"to learn",he:"ללמוד",
- forms:{eu:"învăț",tu:"înveți",el:"învață",noi:"învățăm",voi:"învățați",ei:"învață"}}
-],
-
-nouns:[
-{type:"noun",ro:"copil",en:"child",he:"ילד",gender:"masculine",plural:"copii"},
-{type:"noun",ro:"oraș",en:"city",he:"עיר",gender:"neuter",plural:"orașe"},
-{type:"noun",ro:"copac",en:"tree",he:"עץ",gender:"masculine",plural:"copaci"},
-{type:"noun",ro:"fustă",en:"skirt",he:"חצאית",gender:"feminine",plural:"fuste"}
-],
-
-colors:[
-{type:"word",ro:"roșu",en:"red",he:"אדום"},
-{type:"word",ro:"albastru",en:"blue",he:"כחול"},
-{type:"word",ro:"verde",en:"green",he:"ירוק"}
-],
-
-fruits:[
-{type:"noun",ro:"măr",en:"apple",he:"תפוח",gender:"neuter",plural:"mere"},
-{type:"noun",ro:"pară",en:"pear",he:"אגס",gender:"feminine",plural:"pere"}
-],
-
-vegetables:[
-{type:"noun",ro:"cartof",en:"potato",he:"תפוח אדמה",gender:"masculine",plural:"cartofi"},
-{type:"noun",ro:"morcov",en:"carrot",he:"גזר",gender:"masculine",plural:"morcovi"}
-],
-
-function:[
-{type:"word",ro:"fără",en:"without",he:"בלי"},
-{type:"word",ro:"acum",en:"now",he:"עכשיו"}
-]
-
-};
-
-/* ================= STATE ================= */
-
+let DATA = {};
 let currentCategory=[];
 let currentItem=null;
 let index=0;
@@ -117,22 +71,11 @@ let mode="study";
 let reinforcement=[];
 let examResults=[];
 
-/* ================= STORAGE ================= */
-
-function saveStats(data){
-  localStorage.setItem("roStats",JSON.stringify(data));
-}
-function getStats(){
-  return JSON.parse(localStorage.getItem("roStats")||"{}");
-}
-function updateStats(correct){
-  let s=getStats();
-  s.total=(s.total||0)+1;
-  if(correct) s.correct=(s.correct||0)+1;
-  saveStats(s);
-}
-
-/* ================= FLOW ================= */
+fetch('data.json')
+  .then(response => response.json())
+  .then(data => {
+      DATA = data;
+  });
 
 function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
 
@@ -159,10 +102,10 @@ function start(cat){
 }
 
 function setMode(m){
-  mode = m;
-  index = 0;
-  reinforcement = [];
-  examResults = [];
+  mode=m;
+  index=0;
+  reinforcement=[];
+  examResults=[];
   loadItem();
 }
 
@@ -318,8 +261,6 @@ function checkAnswer(){
     }
   }
 
-  updateStats(correct);
-
   if(mode==="exam"){
     examResults.push(correct);
   }else{
@@ -356,14 +297,13 @@ function finishRound(){
 }
 
 function showStats(){
-  const s=getStats();
+  const s=JSON.parse(localStorage.getItem("roStats")||"{}");
   const percent=s.total?Math.round((s.correct/s.total)*100):0;
   document.getElementById("statistics").classList.remove("hidden");
   document.getElementById("statistics").innerHTML=
     `<b>Total Attempts:</b> ${s.total||0}<br>
      <b>Correct:</b> ${s.correct||0}<br>
-     <b>Success Rate:</b> ${percent}%<br>
-     ${percent<70?"Focus more on verbs and gender.":"Great progress!"}`;
+     <b>Success Rate:</b> ${percent}%`;
 }
 
 function backToMenu(){
