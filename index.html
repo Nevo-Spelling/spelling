@@ -1,142 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Romanian Trainer B1</title>
-
+<title>Romanian B1 – Categories & Mixed</title>
 <style>
-body {
-  font-family: Arial;
-  background: #f2f2f2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-.box {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  text-align: center;
-}
-button, input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 16px;
-}
-#feedback {
-  margin-top: 10px;
-  font-weight: bold;
-}
+body{font-family:Arial;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:560px;text-align:center}
+button,input{width:100%;padding:10px;margin-top:10px;font-size:16px}
+.row button{width:48%;display:inline-block}
+.word{font-size:22px;font-weight:bold;margin-top:10px}
+.details{margin-top:10px;text-align:left;font-size:14px}
+.hidden{display:none}
+#feedback{margin-top:10px;font-weight:bold}
+.small{font-size:13px;color:#666}
 </style>
 </head>
 <body>
-
 <div class="box">
-  <h2>Romanian B1 Smart Mode</h2>
-  <div id="question"></div>
-  <input id="answer" placeholder="Type your answer">
-  <button onclick="checkAnswer()">Check</button>
-  <div id="feedback"></div>
+
+<h2>Romanian Trainer B1</h2>
+
+<div id="menu">
+  <div class="row">
+    <button onclick="start('verbs')">Verbs</button>
+    <button onclick="start('nouns')">Nouns</button>
+  </div>
+  <div class="row">
+    <button onclick="start('adjectives')">Adjectives</button>
+    <button onclick="start('colors')">Colors</button>
+  </div>
+  <div class="row">
+    <button onclick="start('food')">Fruits & Veg</button>
+    <button onclick="start('function')">Function Words</button>
+  </div>
+  <button onclick="start('mixed')">Mixed Smart (50% verbs)</button>
+</div>
+
+<div id="app" class="hidden">
+
+  <div class="row">
+    <button onclick="setMode('study')">Study Mode</button>
+    <button onclick="setMode('test')">Test Mode</button>
+  </div>
+
+  <div class="word" id="word"></div>
+
+  <!-- Study -->
+  <div id="studyArea" class="hidden">
+    <button onclick="showDetails()">הצג פירוש</button>
+    <div id="details" class="details hidden"></div>
+    <button id="nextBtn" class="hidden" onclick="nextStudy()">המשך</button>
+  </div>
+
+  <!-- Test -->
+  <div id="testArea" class="hidden">
+    <input id="answer" placeholder="Type English or Hebrew">
+    <button onclick="checkAnswer()">Check</button>
+    <div id="feedback"></div>
+  </div>
+
+  <div class="small" id="counter"></div>
+  <button onclick="backToMenu()">חזרה לתפריט</button>
+
+</div>
+
 </div>
 
 <script>
+// ===== DATA =====
+const DATA = {
+verbs:[
+{
+  type:"verb",
+  ro:"a merge", en:"to go", he:"ללכת",
+  forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}
+},
+{
+  type:"verb",
+  ro:"a avea", en:"to have", he:"יש/להחזיק",
+  forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}
+},
+{
+  type:"verb",
+  ro:"a face", en:"to do", he:"לעשות",
+  forms:{eu:"fac",tu:"faci",el:"face",noi:"facem",voi:"faceți",ei:"fac"}
+},
+{
+  type:"verb",
+  ro:"a cumpăra", en:"to buy", he:"לקנות",
+  forms:{eu:"cumpăr",tu:"cumperi",el:"cumpără",noi:"cumpărăm",voi:"cumpărați",ei:"cumpără"}
+}
+],
+nouns:[
+{type:"noun",ro:"măr",en:"apple",he:"תפוח",gender:"neuter",plural:"mere"},
+{type:"noun",ro:"oraș",en:"city",he:"עיר",gender:"neuter",plural:"orașe"},
+{type:"noun",ro:"muncă",en:"work",he:"עבודה",gender:"feminine",plural:"munci"}
+],
+adjectives:[
+{type:"adj",ro:"obosit",en:"tired",he:"עייף"},
+{type:"adj",ro:"plăcut",en:"pleasant",he:"נעים"}
+],
+colors:[
+{type:"noun",ro:"roșu",en:"red",he:"אדום"},
+{type:"noun",ro:"albastru",en:"blue",he:"כחול"},
+{type:"noun",ro:"verde",en:"green",he:"ירוק"}
+],
+food:[
+{type:"noun",ro:"morcov",en:"carrot",he:"גזר"},
+{type:"noun",ro:"roșie",en:"tomato",he:"עגבנייה"},
+{type:"noun",ro:"portocală",en:"orange",he:"תפוז"}
+],
+function:[
+{type:"word",ro:"fără",en:"without",he:"בלי"},
+{type:"word",ro:"acum",en:"now",he:"עכשיו"},
+{type:"word",ro:"pentru că",en:"because",he:"כי"}
+]
+};
 
-const vocab = [
-  { ro: "muncă", en: "work" },
-  { ro: "problemă", en: "problem" },
-  { ro: "răspuns", en: "answer" },
-  { ro: "motiv", en: "reason" },
-  { ro: "primăvară", en: "spring" },
-  { ro: "roșu", en: "red" },
-  { ro: "măr", en: "apple" },
-  { ro: "morcov", en: "carrot" }
-];
+let active=[];
+let mistakes=[];
+let index=0;
+let mode="study";
+let category="";
 
-const verbs = [
-  {
-    infinitive: "a merge",
-    en: "to go",
-    forms: {
-      "I": "merg",
-      "you": "mergi",
-      "he": "merge",
-      "we": "mergem",
-      "you(pl)": "mergeți",
-      "they": "merg"
-    }
-  },
-  {
-    infinitive: "a avea",
-    en: "to have",
-    forms: {
-      "I": "am",
-      "you": "ai",
-      "he": "are",
-      "we": "avem",
-      "you(pl)": "aveți",
-      "they": "au"
-    }
-  }
-];
+// ===== HELPERS =====
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
 
-let current = {};
-let mode = "";
-
-function randomItem(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+function start(cat){
+  category=cat;
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  prepareData();
+  setMode("study");
 }
 
-function generateQuestion() {
-  const rand = Math.random();
-
-  if (rand < 0.5) {
-    mode = "conjugation";
-    const verb = randomItem(verbs);
-    const persons = Object.keys(verb.forms);
-    const person = randomItem(persons);
-    current = {
-      correct: verb.forms[person],
-      question: `${person} ${verb.en}`
-    };
-  }
-  else if (rand < 0.8) {
-    mode = "en-ro";
-    const item = randomItem(vocab);
-    current = {
-      correct: item.ro,
-      question: item.en
-    };
-  }
-  else {
-    mode = "ro-en";
-    const item = randomItem(vocab);
-    current = {
-      correct: item.en,
-      question: item.ro
-    };
-  }
-
-  document.getElementById("question").innerText = current.question;
-  document.getElementById("answer").value = "";
-  document.getElementById("feedback").innerText = "";
-}
-
-function checkAnswer() {
-  const input = document.getElementById("answer").value.trim().toLowerCase();
-  if (input === current.correct.toLowerCase()) {
-    document.getElementById("feedback").innerText = "Correct ✔️";
+function prepareData(){
+  if(category==="mixed"){
+    const verbs=DATA.verbs;
+    const others=[...DATA.nouns,...DATA.adjectives,...DATA.colors,...DATA.food,...DATA.function];
+    active=[];
+    const size=20; // mixed round size
+    for(let i=0;i<size;i++){
+      if(Math.random()<0.5){
+        active.push(shuffle([...verbs])[0]);
+      }else{
+        active.push(shuffle([...others])[0]);
+      }
+    }
   } else {
-    document.getElementById("feedback").innerText =
-      "Wrong. Correct: " + current.correct;
+    active=shuffle([...DATA[category]]);
   }
-  setTimeout(generateQuestion, 800);
+  index=0;
+  mistakes=[];
 }
 
-generateQuestion();
+function setMode(m){
+  mode=m;
+  document.getElementById("studyArea").classList.toggle("hidden",m!=="study");
+  document.getElementById("testArea").classList.toggle("hidden",m!=="test");
+  loadItem();
+}
+
+function loadItem(){
+  if(index>=active.length){
+    finishRound();
+    return;
+  }
+  const item=active[index];
+  document.getElementById("word").innerText=item.ro;
+  document.getElementById("details").classList.add("hidden");
+  document.getElementById("nextBtn").classList.add("hidden");
+  document.getElementById("details").innerHTML="";
+  document.getElementById("feedback").innerText="";
+  document.getElementById("answer").value="";
+  document.getElementById("counter").innerText=(index+1)+" / "+active.length;
+}
+
+function showDetails(){
+  const item=active[index];
+  let html="<b>English:</b> "+item.en+"<br><b>עברית:</b> "+item.he+"<br>";
+  if(item.type==="noun" && item.gender){
+    html+="<b>Gender:</b> "+item.gender+"<br><b>Plural:</b> "+item.plural+"<br>";
+  }
+  if(item.type==="verb"){
+    html+="<b>Present:</b><br>";
+    for(let p in item.forms){
+      html+=p+": "+item.forms[p]+"<br>";
+    }
+  }
+  document.getElementById("details").innerHTML=html;
+  document.getElementById("details").classList.remove("hidden");
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function nextStudy(){ index++; loadItem(); }
+
+function checkAnswer(){
+  const item=active[index];
+  const input=document.getElementById("answer").value.trim().toLowerCase();
+  if(input===item.en.toLowerCase() || input===item.he.toLowerCase()){
+    document.getElementById("feedback").innerText="Correct ✔️";
+  } else {
+    document.getElementById("feedback").innerText="Wrong: "+item.en+" / "+item.he;
+    mistakes.push(item);
+  }
+  setTimeout(()=>{ index++; loadItem(); },700);
+}
+
+function finishRound(){
+  if(mode==="test" && mistakes.length>0){
+    alert("Reinforcement round starting.");
+    active=shuffle([...mistakes]);
+    mistakes=[];
+    index=0;
+    loadItem();
+  } else {
+    alert("Round finished.");
+  }
+}
+
+function backToMenu(){
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+}
 
 </script>
 </body>
