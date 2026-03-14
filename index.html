@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Romanian Trainer Pro</title>
+
 <style>
 body{font-family:Arial;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:720px;text-align:center}
-button,input,select{width:100%;padding:8px;margin-top:6px;font-size:15px}
+.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:900px;text-align:center}
+button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
 .word{font-size:22px;font-weight:bold;margin-bottom:10px}
 .hidden{display:none}
 .error{border:2px solid red}
@@ -18,6 +19,7 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:15px}
 </style>
 </head>
 <body>
+
 <div class="box">
 
 <h2>Romanian Trainer Pro</h2>
@@ -28,11 +30,22 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:15px}
     <button onclick="start('nouns')">Nouns</button>
   </div>
   <div class="row">
-    <button onclick="setMode('study')">Study Mode</button>
-    <button onclick="setMode('test')">Test Mode</button>
-    <button onclick="setMode('exam')">Exam Mode</button>
+    <button onclick="start('colors')">Colors</button>
+    <button onclick="start('fruits')">Fruits</button>
   </div>
-  <button onclick="showStats()">Show Statistics</button>
+  <div class="row">
+    <button onclick="start('vegetables')">Vegetables</button>
+    <button onclick="start('function')">Function Words</button>
+  </div>
+  <button onclick="start('mixed')">Mixed Mode</button>
+
+  <div class="row">
+    <button onclick="setMode('study')">Study</button>
+    <button onclick="setMode('test')">Test</button>
+    <button onclick="setMode('exam')">Exam</button>
+  </div>
+
+  <button onclick="showStats()">Statistics</button>
 </div>
 
 <div id="trainer" class="hidden">
@@ -50,85 +63,154 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:15px}
 
 <script>
 
+/* ======================= DATA ======================= */
+
 const DATA = {
+
 verbs:[
 {type:"verb",ro:"a merge",en:"to go",he:"ללכת",
  forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}},
+
 {type:"verb",ro:"a avea",en:"to have",he:"יש",
- forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}}
+ forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}},
+
+{type:"verb",ro:"a spune",en:"to say",he:"לומר",
+ forms:{eu:"spun",tu:"spui",el:"spune",noi:"spunem",voi:"spuneți",ei:"spun"}},
+
+{type:"verb",ro:"a învăța",en:"to learn",he:"ללמוד",
+ forms:{eu:"învăț",tu:"înveți",el:"învață",noi:"învățăm",voi:"învățați",ei:"învață"}}
 ],
+
 nouns:[
 {type:"noun",ro:"copil",en:"child",he:"ילד",gender:"masculine",plural:"copii"},
-{type:"noun",ro:"oraș",en:"city",he:"עיר",gender:"neuter",plural:"orașe"}
+{type:"noun",ro:"oraș",en:"city",he:"עיר",gender:"neuter",plural:"orașe"},
+{type:"noun",ro:"copac",en:"tree",he:"עץ",gender:"masculine",plural:"copaci"},
+{type:"noun",ro:"fustă",en:"skirt",he:"חצאית",gender:"feminine",plural:"fuste"}
+],
+
+colors:[
+{type:"word",ro:"roșu",en:"red",he:"אדום"},
+{type:"word",ro:"albastru",en:"blue",he:"כחול"},
+{type:"word",ro:"verde",en:"green",he:"ירוק"}
+],
+
+fruits:[
+{type:"noun",ro:"măr",en:"apple",he:"תפוח",gender:"neuter",plural:"mere"},
+{type:"noun",ro:"pară",en:"pear",he:"אגס",gender:"feminine",plural:"pere"}
+],
+
+vegetables:[
+{type:"noun",ro:"cartof",en:"potato",he:"תפוח אדמה",gender:"masculine",plural:"cartofi"},
+{type:"noun",ro:"morcov",en:"carrot",he:"גזר",gender:"masculine",plural:"morcovi"}
+],
+
+function:[
+{type:"word",ro:"fără",en:"without",he:"בלי"},
+{type:"word",ro:"acum",en:"now",he:"עכשיו"}
 ]
+
 };
 
-let categoryData=[];
-let current;
+/* ======================= STATE ======================= */
+
+let currentCategory=[];
+let currentItem=null;
 let index=0;
 let mode="study";
+let reinforcement=[];
 let examResults=[];
-let reinforcementQueue=[];
+
+/* ======================= STORAGE ======================= */
 
 function saveStats(data){
-  localStorage.setItem("romanianStats",JSON.stringify(data));
+  localStorage.setItem("roStats",JSON.stringify(data));
 }
-
 function getStats(){
-  return JSON.parse(localStorage.getItem("romanianStats")||"{}");
+  return JSON.parse(localStorage.getItem("roStats")||"{}");
+}
+function updateStats(correct){
+  let s=getStats();
+  s.total=(s.total||0)+1;
+  if(correct) s.correct=(s.correct||0)+1;
+  saveStats(s);
 }
 
-function updateStats(correct){
-  let stats=getStats();
-  stats.total=(stats.total||0)+1;
-  if(correct) stats.correct=(stats.correct||0)+1;
-  saveStats(stats);
-}
+/* ======================= FLOW ======================= */
+
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
 
 function start(cat){
-  categoryData=[...DATA[cat]];
+  if(cat==="mixed"){
+    currentCategory=shuffle([
+      ...DATA.verbs,
+      ...DATA.nouns,
+      ...DATA.colors,
+      ...DATA.fruits,
+      ...DATA.vegetables,
+      ...DATA.function
+    ]);
+  }else{
+    currentCategory=shuffle(DATA[cat]);
+  }
+
   index=0;
+  reinforcement=[];
+  examResults=[];
   document.getElementById("menu").classList.add("hidden");
   document.getElementById("trainer").classList.remove("hidden");
   loadItem();
 }
 
-function setMode(m){
-  mode=m;
-}
+function setMode(m){ mode=m; }
 
 function loadItem(){
-  if(index>=categoryData.length){
-    if(mode==="exam"){
-      finishExam();
-      return;
-    }
-    if(reinforcementQueue.length>0){
-      categoryData=[...reinforcementQueue];
-      reinforcementQueue=[];
-      index=0;
-      alert("Reinforcement Round");
-    } else {
-      alert("Round finished");
-      backToMenu();
-      return;
-    }
+  if(index>=currentCategory.length){
+    finishRound();
+    return;
   }
 
-  current=categoryData[index];
-  document.getElementById("word").innerText=current.ro;
+  currentItem=currentCategory[index];
+  document.getElementById("word").innerText=currentItem.ro;
   const container=document.getElementById("fields");
   container.innerHTML="";
   document.getElementById("feedback").innerText="";
 
-  if(current.type==="verb"){
+  if(mode==="study"){
+    container.innerHTML=`<button onclick="showStudy()">Show Meaning</button>
+      <div id="studyBox" class="hidden"></div>`;
+  }else{
+    buildTestFields(container);
+  }
+}
+
+function showStudy(){
+  const box=document.getElementById("studyBox");
+  let html=`<b>English:</b> ${currentItem.en}<br>
+            <b>עברית:</b> ${currentItem.he}<br>`;
+  if(currentItem.type==="noun"){
+    html+=`<b>Gender:</b> ${currentItem.gender}<br>
+           <b>Plural:</b> ${currentItem.plural}<br>`;
+  }
+  if(currentItem.type==="verb"){
+    html+=`<b>Present:</b><br>`;
+    for(let p in currentItem.forms){
+      html+=`${p}: ${currentItem.forms[p]}<br>`;
+    }
+  }
+  box.innerHTML=html;
+  box.classList.remove("hidden");
+}
+
+function buildTestFields(container){
+
+  if(currentItem.type==="verb"){
     container.innerHTML+=`<input id="inf" placeholder="Infinitive">`;
-    for(let p in current.forms){
+    for(let p in currentItem.forms){
       container.innerHTML+=`<input id="${p}" placeholder="${p}">`;
     }
   }
 
-  if(current.type==="noun"){
+  if(currentItem.type==="noun"){
     container.innerHTML+=`<input id="translation" placeholder="Translation">`;
     container.innerHTML+=`
       <select id="gender">
@@ -139,46 +221,51 @@ function loadItem(){
       </select>`;
     container.innerHTML+=`<input id="plural" placeholder="Plural">`;
   }
+
+  if(currentItem.type==="word"){
+    container.innerHTML+=`<input id="translation" placeholder="Translation">`;
+  }
 }
 
 function checkAnswer(){
+
   let correct=true;
 
-  if(current.type==="verb"){
+  if(currentItem.type==="verb"){
     const inf=document.getElementById("inf").value.trim().toLowerCase();
-    if(inf!==current.en.toLowerCase()&&inf!==current.he.toLowerCase()){
+    if(inf!==currentItem.en.toLowerCase() && inf!==currentItem.he.toLowerCase()){
       correct=false;
-      if(mode!=="exam") document.getElementById("inf").classList.add("error");
     }
-    for(let p in current.forms){
-      const val=document.getElementById(p).value.trim();
-      if(val!==current.forms[p]){
+    for(let p in currentItem.forms){
+      if(document.getElementById(p).value.trim()!==currentItem.forms[p]){
         correct=false;
-        if(mode!=="exam"){
-          document.getElementById(p).classList.add("error");
-          reinforcementQueue.push(current);
-        }
+        reinforcement.push(currentItem);
       }
     }
   }
 
-  if(current.type==="noun"){
+  if(currentItem.type==="noun"){
     const tr=document.getElementById("translation").value.trim().toLowerCase();
     const gen=document.getElementById("gender").value;
     const pl=document.getElementById("plural").value.trim();
 
-    if(tr!==current.en.toLowerCase()&&tr!==current.he.toLowerCase()){
+    if(tr!==currentItem.en.toLowerCase() && tr!==currentItem.he.toLowerCase()){
       correct=false;
-      if(mode!=="exam") document.getElementById("translation").classList.add("error");
     }
-    if(gen!==current.gender){
+    if(gen!==currentItem.gender){
       correct=false;
-      if(mode!=="exam") document.getElementById("gender").classList.add("error");
+      reinforcement.push(currentItem);
     }
-    if(pl!==current.plural){
+    if(pl!==currentItem.plural){
       correct=false;
-      if(mode!=="exam") document.getElementById("plural").classList.add("error");
-      reinforcementQueue.push(current);
+      reinforcement.push(currentItem);
+    }
+  }
+
+  if(currentItem.type==="word"){
+    const tr=document.getElementById("translation").value.trim().toLowerCase();
+    if(tr!==currentItem.en.toLowerCase() && tr!==currentItem.he.toLowerCase()){
+      correct=false;
     }
   }
 
@@ -186,9 +273,9 @@ function checkAnswer(){
 
   if(mode==="exam"){
     examResults.push(correct);
-  } else {
+  }else{
     document.getElementById("feedback").innerText=
-      correct?"Correct ✔️":"Errors – check highlighted fields";
+      correct?"Correct ✔️":"Wrong";
   }
 }
 
@@ -197,24 +284,38 @@ function nextItem(){
   loadItem();
 }
 
-function finishExam(){
-  const total=examResults.length;
-  const correct=examResults.filter(x=>x).length;
-  const percent=Math.round((correct/total)*100);
-  alert("Exam finished: "+percent+"%");
-  examResults=[];
-  backToMenu();
+function finishRound(){
+
+  if(mode==="exam"){
+    const total=examResults.length;
+    const correct=examResults.filter(x=>x).length;
+    const percent=Math.round((correct/total)*100);
+    alert("Exam Result: "+percent+"%");
+    backToMenu();
+    return;
+  }
+
+  if(reinforcement.length>0){
+    alert("Reinforcement Round");
+    currentCategory=shuffle(reinforcement);
+    reinforcement=[];
+    index=0;
+    loadItem();
+  }else{
+    alert("Round Finished");
+    backToMenu();
+  }
 }
 
 function showStats(){
-  const stats=getStats();
-  const percent=stats.total?Math.round((stats.correct/stats.total)*100):0;
+  const s=getStats();
+  const percent=s.total?Math.round((s.correct/s.total)*100):0;
   document.getElementById("statistics").classList.remove("hidden");
   document.getElementById("statistics").innerHTML=
-    "<b>Total Attempts:</b> "+(stats.total||0)+"<br>"+
-    "<b>Correct:</b> "+(stats.correct||0)+"<br>"+
-    "<b>Success Rate:</b> "+percent+"%<br>"+
-    (percent<70?"<b>Recommendation:</b> Focus more on verbs.":"<b>Great progress!</b>");
+    `<b>Total Attempts:</b> ${s.total||0}<br>
+     <b>Correct:</b> ${s.correct||0}<br>
+     <b>Success Rate:</b> ${percent}%<br>
+     ${percent<70?"Focus more on verbs and gender.":"Great progress!"}`;
 }
 
 function backToMenu(){
@@ -224,5 +325,6 @@ function backToMenu(){
 }
 
 </script>
+
 </body>
 </html>
