@@ -1,293 +1,128 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Romanian B1 – Full</title>
+<title>Romanian Advanced Trainer</title>
 <style>
 body{font-family:Arial;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:700px;text-align:center}
-button,input{width:100%;padding:10px;margin-top:10px;font-size:16px}
-.row button{width:48%;display:inline-block}
-.word{font-size:22px;font-weight:bold;margin-top:10px}
-.details{margin-top:10px;text-align:left;font-size:14px}
+.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:650px;text-align:center}
+input,select,button{width:100%;padding:8px;margin-top:6px;font-size:15px}
+.word{font-size:22px;font-weight:bold;margin-bottom:10px}
 .hidden{display:none}
 #feedback{margin-top:10px;font-weight:bold}
-.small{font-size:13px;color:#666}
 </style>
 </head>
 <body>
 <div class="box">
 
-<h2>Romanian Trainer B1 – Full Mode</h2>
+<h2>Romanian Advanced Trainer</h2>
 
-<div id="menu">
-  <div class="row">
-    <button onclick="start('verbs')">Verbs</button>
-    <button onclick="start('nouns')">Nouns</button>
-  </div>
-  <div class="row">
-    <button onclick="start('adjectives')">Adjectives</button>
-    <button onclick="start('colors')">Colors</button>
-  </div>
-  <div class="row">
-    <button onclick="start('vegetables')">Vegetables</button>
-    <button onclick="start('fruits')">Fruits</button>
-  </div>
-  <div class="row">
-    <button onclick="start('function')">Function Words</button>
-    <button onclick="start('mixed')">Mixed (All)</button>
-  </div>
-</div>
-
-<div id="app" class="hidden">
-
-  <div class="row">
-    <button onclick="setMode('study')">Study Mode</button>
-    <button onclick="setMode('test')">Test Mode</button>
-  </div>
-
+<div id="questionArea">
   <div class="word" id="word"></div>
-
-  <!-- Study -->
-  <div id="studyArea" class="hidden">
-    <button onclick="showDetails()">הצג פירוש</button>
-    <div id="details" class="details hidden"></div>
-    <button id="nextBtn" class="hidden" onclick="nextStudy()">המשך</button>
-  </div>
-
-  <!-- Test -->
-  <div id="testArea" class="hidden">
-    <input id="answer" placeholder="Type English or Hebrew">
-    <button onclick="checkAnswer()">Check</button>
-    <div id="feedback"></div>
-  </div>
-
-  <div class="small" id="counter"></div>
-  <button onclick="backToMenu()">חזרה לתפריט</button>
-
+  <div id="dynamicFields"></div>
+  <button onclick="checkAnswer()">Check</button>
+  <div id="feedback"></div>
 </div>
 
 </div>
 
 <script>
 
-// ===== VERBS (שלך + שלמים) =====
-const verbs = [
-{type:"verb",ro:"a coborî",en:"to descend",he:"לרדת",forms:{eu:"cobor",tu:"cobori",el:"coboară",noi:"coborâm",voi:"coborâți",ei:"coboară"}},
-{type:"verb",ro:"a cânta",en:"to sing",he:"לשיר",forms:{eu:"cânt",tu:"cânți",el:"cântă",noi:"cântăm",voi:"cântați",ei:"cântă"}},
-{type:"verb",ro:"a termina",en:"to finish",he:"לסיים",forms:{eu:"termin",tu:"termini",el:"termină",noi:"terminăm",voi:"terminați",ei:"termină"}},
-{type:"verb",ro:"a urca",en:"to climb",he:"לטפס",forms:{eu:"urc",tu:"urci",el:"urcă",noi:"urcăm",voi:"urcați",ei:"urcă"}},
-{type:"verb",ro:"a discuta",en:"to discuss",he:"לדון",forms:{eu:"discut",tu:"discuți",el:"discută",noi:"discutăm",voi:"discutați",ei:"discută"}},
-{type:"verb",ro:"a repara",en:"to repair",he:"לתקן",forms:{eu:"repar",tu:"repari",el:"repară",noi:"reparăm",voi:"reparați",ei:"repară"}},
-{type:"verb",ro:"a alerga",en:"to run",he:"לרוץ",forms:{eu:"alerg",tu:"alergi",el:"aleargă",noi:"alergăm",voi:"alergați",ei:"aleargă"}},
-{type:"verb",ro:"a pleca",en:"to leave",he:"לעזוב",forms:{eu:"plec",tu:"pleci",el:"pleacă",noi:"plecăm",voi:"plecați",ei:"pleacă"}},
-{type:"verb",ro:"a încerca",en:"to try",he:"לנסות",forms:{eu:"încerc",tu:"încerci",el:"încearcă",noi:"încercăm",voi:"încercați",ei:"încearcă"}},
-{type:"verb",ro:"a aștepta",en:"to wait",he:"לחכות",forms:{eu:"aștept",tu:"aștepți",el:"așteaptă",noi:"așteptăm",voi:"așteptați",ei:"așteaptă"}},
-{type:"verb",ro:"a întreba",en:"to ask",he:"לשאול",forms:{eu:"întreb",tu:"întrebi",el:"întreabă",noi:"întrebăm",voi:"întrebați",ei:"întreabă"}},
-{type:"verb",ro:"a juca",en:"to play",he:"לשחק",forms:{eu:"joc",tu:"joci",el:"joacă",noi:"jucăm",voi:"jucați",ei:"joacă"}},
-{type:"verb",ro:"a ruga",en:"to ask/beg",he:"לבקש",forms:{eu:"rog",tu:"rogi",el:"roagă",noi:"rugăm",voi:"rugați",ei:"roagă"}},
-{type:"verb",ro:"a purta",en:"to wear",he:"ללבוש",forms:{eu:"port",tu:"porți",el:"poartă",noi:"purtăm",voi:"purtați",ei:"poartă"}},
-{type:"verb",ro:"a zbura",en:"to fly",he:"לעוף",forms:{eu:"zbor",tu:"zbori",el:"zboară",noi:"zburăm",voi:"zburați",ei:"zboară"}},
-{type:"verb",ro:"a învăța",en:"to learn",he:"ללמוד",forms:{eu:"învăț",tu:"înveți",el:"învață",noi:"învățăm",voi:"învățați",ei:"învață"}},
-{type:"verb",ro:"a spăla",en:"to wash",he:"לשטוף",forms:{eu:"spăl",tu:"speli",el:"spală",noi:"spălăm",voi:"spălați",ei:"spală"}},
-{type:"verb",ro:"a cumpăra",en:"to buy",he:"לקנות",forms:{eu:"cumpăr",tu:"cumperi",el:"cumpără",noi:"cumpărăm",voi:"cumpărați",ei:"cumpără"}},
-{type:"verb",ro:"a avea",en:"to have",he:"יש/להחזיק",forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}},
-{type:"verb",ro:"a merge",en:"to go",he:"ללכת",forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}},
-{type:"verb",ro:"a spune",en:"to say",he:"לומר",forms:{eu:"spun",tu:"spui",el:"spune",noi:"spunem",voi:"spuneți",ei:"spun"}},
-{type:"verb",ro:"a folosi",en:"to use",he:"להשתמש",forms:{eu:"folosesc",tu:"folosești",el:"folosește",noi:"folosim",voi:"folosiți",ei:"folosesc"}},
-{type:"verb",ro:"a dori",en:"to wish",he:"לרצות",forms:{eu:"doresc",tu:"dorești",el:"dorește",noi:"dorim",voi:"doriți",ei:"doresc"}}
-];
-
-// ===== NOUNS =====
-const nouns = [
-{type:"noun",ro:"copil",en:"child",he:"ילד",gender:"masculine",plural:"copii"},
-{type:"noun",ro:"copac",en:"tree",he:"עץ",gender:"masculine",plural:"copaci"},
-{type:"noun",ro:"urs",en:"bear",he:"דוב",gender:"masculine",plural:"urși"},
-{type:"noun",ro:"fustă",en:"skirt",he:"חצאית",gender:"feminine",plural:"fuste"},
-{type:"noun",ro:"sacou",en:"jacket",he:"ז׳קט",gender:"neuter",plural:"sacouri"},
-{type:"noun",ro:"soare",en:"sun",he:"שמש",gender:"neuter",plural:"sori"},
-{type:"noun",ro:"scrisoare",en:"letter",he:"מכתב",gender:"feminine",plural:"scrisori"},
-{type:"noun",ro:"băiat",en:"boy",he:"ילד (בן)",gender:"masculine",plural:"băieți"},
-{type:"noun",ro:"pijama",en:"pajamas",he:"פיג׳מה",gender:"feminine",plural:"pijamale"},
-{type:"noun",ro:"hârtie",en:"paper",he:"נייר",gender:"feminine",plural:"hârtii"},
-{type:"noun",ro:"pepene",en:"melon",he:"מלון",gender:"masculine",plural:"pepeni"},
-{type:"noun",ro:"farfurie",en:"plate",he:"צלחת",gender:"feminine",plural:"farfurii"},
-{type:"noun",ro:"vulpe",en:"fox",he:"שועל",gender:"feminine",plural:"vulpi"},
-{type:"noun",ro:"înghețată",en:"ice cream",he:"גלידה",gender:"feminine",plural:"înghețate"},
-{type:"noun",ro:"minge",en:"ball",he:"כדור",gender:"feminine",plural:"mingi"},
-{type:"noun",ro:"zahăr",en:"sugar",he:"סוכר",gender:"neuter",plural:"zaharuri"},
-{type:"noun",ro:"chef",en:"mood",he:"חשק",gender:"neuter",plural:"chefuri"},
-{type:"noun",ro:"nevoie",en:"need",he:"צורך",gender:"feminine",plural:"nevoi"},
-{type:"noun",ro:"pat",en:"bed",he:"מיטה",gender:"neuter",plural:"paturi"},
-{type:"noun",ro:"dulap",en:"closet",he:"ארון",gender:"neuter",plural:"dulapuri"},
-{type:"noun",ro:"pernă",en:"pillow",he:"כרית",gender:"feminine",plural:"perne"},
-{type:"noun",ro:"pătură",en:"blanket",he:"שמיכה",gender:"feminine",plural:"pături"},
-{type:"noun",ro:"pisică",en:"cat",he:"חתול",gender:"feminine",plural:"pisici"},
-{type:"noun",ro:"elev",en:"student",he:"תלמיד",gender:"masculine",plural:"elevi"},
-{type:"noun",ro:"pas",en:"step",he:"צעד",gender:"neuter",plural:"pași"},
-{type:"noun",ro:"ușă",en:"door",he:"דלת",gender:"feminine",plural:"uși"},
-{type:"noun",ro:"sosire",en:"arrival",he:"הגעה",gender:"feminine",plural:"sosiri"},
-{type:"noun",ro:"greșeală",en:"mistake",he:"טעות",gender:"feminine",plural:"greșeli"}
-];
-
-// ===== ADJECTIVES =====
-const adjectives = [
-{type:"adj",ro:"obosit",en:"tired",he:"עייף"},
-{type:"adj",ro:"plăcut",en:"pleasant",he:"נעים"}
-];
-
-// ===== COLORS =====
-const colors = [
-{type:"word",ro:"alb",en:"white",he:"לבן"},
-{type:"word",ro:"negru",en:"black",he:"שחור"},
-{type:"word",ro:"roșu",en:"red",he:"אדום"},
-{type:"word",ro:"albastru",en:"blue",he:"כחול"},
-{type:"word",ro:"galben",en:"yellow",he:"צהוב"},
-{type:"word",ro:"verde",en:"green",he:"ירוק"},
-{type:"word",ro:"portocaliu",en:"orange",he:"כתום"},
-{type:"word",ro:"roz",en:"pink",he:"ורוד"},
-{type:"word",ro:"violet",en:"purple",he:"סגול"},
-{type:"word",ro:"maro",en:"brown",he:"חום"},
-{type:"word",ro:"gri",en:"gray",he:"אפור"},
-{type:"word",ro:"auriu",en:"golden",he:"זהוב"},
-{type:"word",ro:"argintiu",en:"silver",he:"כסוף"}
-];
-
-// ===== VEGETABLES =====
-const vegetables = [
-{type:"noun",ro:"cartof",en:"potato",he:"תפוח אדמה",gender:"masculine",plural:"cartofi"},
-{type:"noun",ro:"ardei",en:"pepper",he:"פלפל",gender:"masculine",plural:"ardei"},
-{type:"noun",ro:"roșie",en:"tomato",he:"עגבנייה",gender:"feminine",plural:"roșii"},
-{type:"noun",ro:"morcov",en:"carrot",he:"גזר",gender:"masculine",plural:"morcovi"},
-{type:"noun",ro:"ceapă",en:"onion",he:"בצל",gender:"feminine",plural:"cepe"},
-{type:"noun",ro:"castravete",en:"cucumber",he:"מלפפון",gender:"masculine",plural:"castraveți"},
-{type:"noun",ro:"varză",en:"cabbage",he:"כרוב",gender:"feminine",plural:"verze"},
-{type:"noun",ro:"vânătă",en:"eggplant",he:"חציל",gender:"feminine",plural:"vinete"},
-{type:"noun",ro:"porumb",en:"corn",he:"תירס",gender:"neuter",plural:"porumburi"},
-{type:"noun",ro:"ciuperci",en:"mushrooms",he:"פטריות"}
-];
-
-// ===== FRUITS =====
-const fruits = [
-{type:"noun",ro:"portocală",en:"orange",he:"תפוז",gender:"feminine",plural:"portocale"},
-{type:"noun",ro:"pară",en:"pear",he:"אגס",gender:"feminine",plural:"pere"},
-{type:"noun",ro:"struguri",en:"grapes",he:"ענבים"},
-{type:"noun",ro:"căpșună",en:"strawberry",he:"תות",gender:"feminine",plural:"căpșuni"},
-{type:"noun",ro:"măr",en:"apple",he:"תפוח",gender:"neuter",plural:"mere"},
-{type:"noun",ro:"lămâie",en:"lemon",he:"לימון",gender:"feminine",plural:"lămâi"},
-{type:"noun",ro:"prună",en:"plum",he:"שזיף",gender:"feminine",plural:"prune"},
-{type:"noun",ro:"vișină",en:"sour cherry",he:"דובדבן חמוץ",gender:"feminine",plural:"vișine"}
-];
-
-// ===== FUNCTION WORDS =====
-const functionWords = [
-{type:"word",ro:"fără",en:"without",he:"בלי"},
-{type:"word",ro:"atât",en:"so much",he:"כל כך"},
-{type:"word",ro:"încă",en:"still",he:"עדיין"},
-{type:"word",ro:"pe",en:"on",he:"על"},
-{type:"word",ro:"între",en:"between",he:"בין"},
-{type:"word",ro:"lângă",en:"next to",he:"ליד"},
-{type:"word",ro:"cine",en:"who",he:"מי"},
-{type:"word",ro:"nimeni",en:"nobody",he:"אף אחד"},
-{type:"word",ro:"dar",en:"but",he:"אבל"},
-{type:"word",ro:"acum",en:"now",he:"עכשיו"},
-{type:"word",ro:"aici",en:"here",he:"כאן"},
-{type:"word",ro:"pentru că",en:"because",he:"כי"},
-{type:"word",ro:"o sută",en:"one hundred",he:"מאה"},
-{type:"word",ro:"jumătate",en:"half",he:"חצי"},
-{type:"word",ro:"sfert",en:"quarter",he:"רבע"},
-{type:"word",ro:"și",en:"and",he:"ו"},
-{type:"word",ro:"până",en:"until",he:"עד"},
-{type:"word",ro:"deja",en:"already",he:"כבר"},
-{type:"word",ro:"tot timpul",en:"all the time",he:"כל הזמן"},
-{type:"word",ro:"mereu",en:"always",he:"תמיד"},
-{type:"word",ro:"niciodată",en:"never",he:"אף פעם"}
-];
-
-// ===== STATE =====
-let active=[];
-let mistakes=[];
-let index=0;
-let mode="study";
-let category="";
-
-function shuffle(a){ return [...a].sort(()=>Math.random()-0.5); }
-
-function getAll(){
-  return [...verbs,...nouns,...adjectives,...colors,...vegetables,...fruits,...functionWords];
+const DATA = [
+{
+type:"verb",
+ro:"a merge",
+en:"to go",
+he:"ללכת",
+forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}
+},
+{
+type:"noun",
+ro:"copil",
+en:"child",
+he:"ילד",
+gender:"masculine",
+plural:"copii"
 }
+];
 
-function start(cat){
-  category=cat;
-  document.getElementById("menu").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  active = (cat==="mixed") ? shuffle(getAll()) : shuffle(eval(cat));
-  index=0;
-  mistakes=[];
-  setMode("study");
-}
-
-function setMode(m){
-  mode=m;
-  document.getElementById("studyArea").classList.toggle("hidden",m!=="study");
-  document.getElementById("testArea").classList.toggle("hidden",m!=="test");
-  loadItem();
-}
+let index = 0;
+let current = DATA[index];
 
 function loadItem(){
-  if(index>=active.length){ finishRound(); return; }
-  const item=active[index];
-  document.getElementById("word").innerText=item.ro;
-  document.getElementById("details").classList.add("hidden");
-  document.getElementById("details").innerHTML="";
-  document.getElementById("feedback").innerText="";
-  document.getElementById("answer").value="";
-  document.getElementById("counter").innerText=(index+1)+" / "+active.length;
-}
+  current = DATA[index];
+  document.getElementById("word").innerText = current.ro;
+  const container = document.getElementById("dynamicFields");
+  container.innerHTML = "";
 
-function showDetails(){
-  const item=active[index];
-  let html="<b>English:</b> "+item.en+"<br><b>עברית:</b> "+item.he+"<br>";
-  if(item.type==="noun" && item.gender){
-    html+="<b>Gender:</b> "+item.gender+"<br><b>Plural:</b> "+item.plural+"<br>";
+  if(current.type === "verb"){
+    container.innerHTML += `<input id="infinitive" placeholder="Infinitive (English or Hebrew)">`;
+    for(let person in current.forms){
+      container.innerHTML += `<input id="${person}" placeholder="${person} form">`;
+    }
   }
-  if(item.type==="verb"){
-    html+="<b>Present:</b><br>";
-    for(let p in item.forms){ html+=p+": "+item.forms[p]+"<br>"; }
+
+  if(current.type === "noun"){
+    container.innerHTML += `<input id="translation" placeholder="Translation (English or Hebrew)">`;
+    container.innerHTML += `
+      <select id="gender">
+        <option value="">Select gender</option>
+        <option value="masculine">masculine</option>
+        <option value="feminine">feminine</option>
+        <option value="neuter">neuter</option>
+      </select>
+    `;
+    container.innerHTML += `<input id="plural" placeholder="Plural form">`;
   }
-  document.getElementById("details").innerHTML=html;
-  document.getElementById("details").classList.remove("hidden");
+
+  document.getElementById("feedback").innerText = "";
 }
 
 function checkAnswer(){
-  const item=active[index];
-  const input=document.getElementById("answer").value.trim().toLowerCase();
-  if(input===item.en.toLowerCase() || input===item.he.toLowerCase()){
-    document.getElementById("feedback").innerText="Correct ✔️";
-  } else {
-    document.getElementById("feedback").innerText="Wrong: "+item.en+" / "+item.he;
-    mistakes.push(item);
+  let correct = true;
+
+  if(current.type === "verb"){
+    const inf = document.getElementById("infinitive").value.trim().toLowerCase();
+    if(inf !== current.en.toLowerCase() && inf !== current.he.toLowerCase()){
+      correct = false;
+    }
+
+    for(let person in current.forms){
+      const val = document.getElementById(person).value.trim();
+      if(val !== current.forms[person]){
+        correct = false;
+      }
+    }
   }
-  setTimeout(()=>{ index++; loadItem(); },700);
+
+  if(current.type === "noun"){
+    const trans = document.getElementById("translation").value.trim().toLowerCase();
+    const gen = document.getElementById("gender").value;
+    const pl = document.getElementById("plural").value.trim();
+
+    if(trans !== current.en.toLowerCase() && trans !== current.he.toLowerCase()){
+      correct = false;
+    }
+    if(gen !== current.gender){
+      correct = false;
+    }
+    if(pl !== current.plural){
+      correct = false;
+    }
+  }
+
+  if(correct){
+    document.getElementById("feedback").innerText = "Correct ✔️";
+  } else {
+    document.getElementById("feedback").innerText = "Wrong – check answers.";
+  }
+
+  index = (index + 1) % DATA.length;
+  setTimeout(loadItem, 1200);
 }
 
-function finishRound(){
-  if(mode==="test" && mistakes.length>0){
-    alert("Reinforcement round starting.");
-    active = shuffle([...mistakes]);
-    mistakes=[];
-    index=0;
-    loadItem();
-  } else {
-    alert("Round finished.");
-  }
-}
-
-function backToMenu(){
-  document.getElementById("app").classList.add("hidden");
-  document.getElementById("menu").classList.remove("hidden");
-}
+loadItem();
 
 </script>
 </body>
