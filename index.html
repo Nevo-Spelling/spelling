@@ -3,164 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Romanian Advanced Trainer</title>
-
+<title>Romanian Trainer Pro</title>
 <style>
 body{font-family:Arial;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:650px;text-align:center}
-input,select,button{width:100%;padding:8px;margin-top:6px;font-size:15px}
+.box{background:white;padding:20px;border-radius:12px;width:100%;max-width:720px;text-align:center}
+button,input,select{width:100%;padding:8px;margin-top:6px;font-size:15px}
 .word{font-size:22px;font-weight:bold;margin-bottom:10px}
 .hidden{display:none}
-#feedback{margin-top:10px;font-weight:bold}
 .error{border:2px solid red}
 .correctAnswer{font-size:12px;color:red}
+#feedback{margin-top:10px;font-weight:bold}
+.row button{width:48%;display:inline-block}
+.stats{margin-top:15px;text-align:left;font-size:14px}
 </style>
 </head>
 <body>
 <div class="box">
 
-<h2>Romanian Advanced Trainer</h2>
+<h2>Romanian Trainer Pro</h2>
 
-<div id="questionArea">
+<div id="menu">
+  <div class="row">
+    <button onclick="start('verbs')">Verbs</button>
+    <button onclick="start('nouns')">Nouns</button>
+  </div>
+  <div class="row">
+    <button onclick="setMode('study')">Study Mode</button>
+    <button onclick="setMode('test')">Test Mode</button>
+    <button onclick="setMode('exam')">Exam Mode</button>
+  </div>
+  <button onclick="showStats()">Show Statistics</button>
+</div>
+
+<div id="trainer" class="hidden">
   <div class="word" id="word"></div>
-  <div id="dynamicFields"></div>
+  <div id="fields"></div>
   <button onclick="checkAnswer()">Check</button>
   <div id="feedback"></div>
+  <button onclick="nextItem()">Next</button>
+  <button onclick="backToMenu()">Back</button>
 </div>
+
+<div id="statistics" class="hidden stats"></div>
 
 </div>
 
 <script>
 
-const DATA = [
-{
-type:"verb",
-ro:"a merge",
-en:"to go",
-he:"ללכת",
-forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}
-},
-{
-type:"noun",
-ro:"copil",
-en:"child",
-he:"ילד",
-gender:"masculine",
-plural:"copii"
-}
-];
+const DATA = {
+verbs:[
+{type:"verb",ro:"a merge",en:"to go",he:"ללכת",
+ forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}},
+{type:"verb",ro:"a avea",en:"to have",he:"יש",
+ forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}}
+],
+nouns:[
+{type:"noun",ro:"copil",en:"child",he:"ילד",gender:"masculine",plural:"copii"},
+{type:"noun",ro:"oraș",en:"city",he:"עיר",gender:"neuter",plural:"orașe"}
+]
+};
 
-let index = 0;
+let categoryData=[];
 let current;
+let index=0;
+let mode="study";
+let examResults=[];
+let reinforcementQueue=[];
+
+function saveStats(data){
+  localStorage.setItem("romanianStats",JSON.stringify(data));
+}
+
+function getStats(){
+  return JSON.parse(localStorage.getItem("romanianStats")||"{}");
+}
+
+function updateStats(correct){
+  let stats=getStats();
+  stats.total=(stats.total||0)+1;
+  if(correct) stats.correct=(stats.correct||0)+1;
+  saveStats(stats);
+}
+
+function start(cat){
+  categoryData=[...DATA[cat]];
+  index=0;
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("trainer").classList.remove("hidden");
+  loadItem();
+}
+
+function setMode(m){
+  mode=m;
+}
 
 function loadItem(){
-  current = DATA[index];
-  document.getElementById("word").innerText = current.ro;
-  const container = document.getElementById("dynamicFields");
-  container.innerHTML = "";
-  document.getElementById("feedback").innerText = "";
-
-  if(current.type === "verb"){
-    container.innerHTML += `<input id="infinitive" placeholder="Infinitive (English or Hebrew)">`;
-    for(let person in current.forms){
-      container.innerHTML += `
-        <input id="${person}" placeholder="${person} form">
-        <div id="${person}_correct" class="correctAnswer"></div>
-      `;
+  if(index>=categoryData.length){
+    if(mode==="exam"){
+      finishExam();
+      return;
+    }
+    if(reinforcementQueue.length>0){
+      categoryData=[...reinforcementQueue];
+      reinforcementQueue=[];
+      index=0;
+      alert("Reinforcement Round");
+    } else {
+      alert("Round finished");
+      backToMenu();
+      return;
     }
   }
 
-  if(current.type === "noun"){
-    container.innerHTML += `
-      <input id="translation" placeholder="Translation (English or Hebrew)">
-      <div id="translation_correct" class="correctAnswer"></div>
-    `;
-    container.innerHTML += `
+  current=categoryData[index];
+  document.getElementById("word").innerText=current.ro;
+  const container=document.getElementById("fields");
+  container.innerHTML="";
+  document.getElementById("feedback").innerText="";
+
+  if(current.type==="verb"){
+    container.innerHTML+=`<input id="inf" placeholder="Infinitive">`;
+    for(let p in current.forms){
+      container.innerHTML+=`<input id="${p}" placeholder="${p}">`;
+    }
+  }
+
+  if(current.type==="noun"){
+    container.innerHTML+=`<input id="translation" placeholder="Translation">`;
+    container.innerHTML+=`
       <select id="gender">
         <option value="">Select gender</option>
         <option value="masculine">masculine</option>
         <option value="feminine">feminine</option>
         <option value="neuter">neuter</option>
-      </select>
-      <div id="gender_correct" class="correctAnswer"></div>
-    `;
-    container.innerHTML += `
-      <input id="plural" placeholder="Plural form">
-      <div id="plural_correct" class="correctAnswer"></div>
-    `;
+      </select>`;
+    container.innerHTML+=`<input id="plural" placeholder="Plural">`;
   }
 }
 
 function checkAnswer(){
-  let correct = true;
+  let correct=true;
 
-  if(current.type === "verb"){
-    const infField = document.getElementById("infinitive");
-    const inf = infField.value.trim().toLowerCase();
-    infField.classList.remove("error");
-
-    if(inf !== current.en.toLowerCase() && inf !== current.he.toLowerCase()){
-      correct = false;
-      infField.classList.add("error");
-      document.getElementById("feedback").innerText =
-        "Wrong infinitive: correct is " + current.en;
+  if(current.type==="verb"){
+    const inf=document.getElementById("inf").value.trim().toLowerCase();
+    if(inf!==current.en.toLowerCase()&&inf!==current.he.toLowerCase()){
+      correct=false;
+      if(mode!=="exam") document.getElementById("inf").classList.add("error");
     }
-
-    for(let person in current.forms){
-      const field = document.getElementById(person);
-      const correctDiv = document.getElementById(person + "_correct");
-      field.classList.remove("error");
-      correctDiv.innerText = "";
-
-      if(field.value.trim() !== current.forms[person]){
-        correct = false;
-        field.classList.add("error");
-        correctDiv.innerText = "Correct: " + current.forms[person];
+    for(let p in current.forms){
+      const val=document.getElementById(p).value.trim();
+      if(val!==current.forms[p]){
+        correct=false;
+        if(mode!=="exam"){
+          document.getElementById(p).classList.add("error");
+          reinforcementQueue.push(current);
+        }
       }
     }
   }
 
-  if(current.type === "noun"){
-    const transField = document.getElementById("translation");
-    const genderField = document.getElementById("gender");
-    const pluralField = document.getElementById("plural");
+  if(current.type==="noun"){
+    const tr=document.getElementById("translation").value.trim().toLowerCase();
+    const gen=document.getElementById("gender").value;
+    const pl=document.getElementById("plural").value.trim();
 
-    const trans = transField.value.trim().toLowerCase();
-    transField.classList.remove("error");
-    document.getElementById("translation_correct").innerText = "";
-
-    if(trans !== current.en.toLowerCase() && trans !== current.he.toLowerCase()){
-      correct = false;
-      transField.classList.add("error");
-      document.getElementById("translation_correct").innerText =
-        "Correct: " + current.en + " / " + current.he;
+    if(tr!==current.en.toLowerCase()&&tr!==current.he.toLowerCase()){
+      correct=false;
+      if(mode!=="exam") document.getElementById("translation").classList.add("error");
     }
-
-    if(genderField.value !== current.gender){
-      correct = false;
-      genderField.classList.add("error");
-      document.getElementById("gender_correct").innerText =
-        "Correct: " + current.gender;
+    if(gen!==current.gender){
+      correct=false;
+      if(mode!=="exam") document.getElementById("gender").classList.add("error");
     }
-
-    if(pluralField.value.trim() !== current.plural){
-      correct = false;
-      pluralField.classList.add("error");
-      document.getElementById("plural_correct").innerText =
-        "Correct: " + current.plural;
+    if(pl!==current.plural){
+      correct=false;
+      if(mode!=="exam") document.getElementById("plural").classList.add("error");
+      reinforcementQueue.push(current);
     }
   }
 
-  if(correct){
-    document.getElementById("feedback").innerText = "Correct ✔️";
-    setTimeout(()=>{
-      index = (index + 1) % DATA.length;
-      loadItem();
-    }, 1200);
+  updateStats(correct);
+
+  if(mode==="exam"){
+    examResults.push(correct);
+  } else {
+    document.getElementById("feedback").innerText=
+      correct?"Correct ✔️":"Errors – check highlighted fields";
   }
 }
 
-loadItem();
+function nextItem(){
+  index++;
+  loadItem();
+}
+
+function finishExam(){
+  const total=examResults.length;
+  const correct=examResults.filter(x=>x).length;
+  const percent=Math.round((correct/total)*100);
+  alert("Exam finished: "+percent+"%");
+  examResults=[];
+  backToMenu();
+}
+
+function showStats(){
+  const stats=getStats();
+  const percent=stats.total?Math.round((stats.correct/stats.total)*100):0;
+  document.getElementById("statistics").classList.remove("hidden");
+  document.getElementById("statistics").innerHTML=
+    "<b>Total Attempts:</b> "+(stats.total||0)+"<br>"+
+    "<b>Correct:</b> "+(stats.correct||0)+"<br>"+
+    "<b>Success Rate:</b> "+percent+"%<br>"+
+    (percent<70?"<b>Recommendation:</b> Focus more on verbs.":"<b>Great progress!</b>");
+}
+
+function backToMenu(){
+  document.getElementById("trainer").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+  document.getElementById("statistics").classList.add("hidden");
+}
 
 </script>
 </body>
