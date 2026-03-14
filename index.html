@@ -12,7 +12,7 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
 .word{font-size:22px;font-weight:bold;margin-bottom:10px}
 .hidden{display:none}
 .error{border:2px solid red}
-.correctAnswer{font-size:12px;color:red}
+.correctAnswer{font-size:12px;color:red;margin-bottom:4px}
 #feedback{margin-top:10px;font-weight:bold}
 .row button{width:48%;display:inline-block}
 .stats{margin-top:15px;text-align:left;font-size:14px}
@@ -63,20 +63,17 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
 
 <script>
 
-/* ======================= DATA ======================= */
+/* ================= DATA ================= */
 
 const DATA = {
 
 verbs:[
 {type:"verb",ro:"a merge",en:"to go",he:"ללכת",
  forms:{eu:"merg",tu:"mergi",el:"merge",noi:"mergem",voi:"mergeți",ei:"merg"}},
-
 {type:"verb",ro:"a avea",en:"to have",he:"יש",
  forms:{eu:"am",tu:"ai",el:"are",noi:"avem",voi:"aveți",ei:"au"}},
-
 {type:"verb",ro:"a spune",en:"to say",he:"לומר",
  forms:{eu:"spun",tu:"spui",el:"spune",noi:"spunem",voi:"spuneți",ei:"spun"}},
-
 {type:"verb",ro:"a învăța",en:"to learn",he:"ללמוד",
  forms:{eu:"învăț",tu:"înveți",el:"învață",noi:"învățăm",voi:"învățați",ei:"învață"}}
 ],
@@ -111,7 +108,7 @@ function:[
 
 };
 
-/* ======================= STATE ======================= */
+/* ================= STATE ================= */
 
 let currentCategory=[];
 let currentItem=null;
@@ -120,7 +117,7 @@ let mode="study";
 let reinforcement=[];
 let examResults=[];
 
-/* ======================= STORAGE ======================= */
+/* ================= STORAGE ================= */
 
 function saveStats(data){
   localStorage.setItem("roStats",JSON.stringify(data));
@@ -135,7 +132,7 @@ function updateStats(correct){
   saveStats(s);
 }
 
-/* ======================= FLOW ======================= */
+/* ================= FLOW ================= */
 
 function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
 
@@ -207,11 +204,17 @@ function buildTestFields(container){
     container.innerHTML+=`<input id="inf" placeholder="Infinitive">`;
     for(let p in currentItem.forms){
       container.innerHTML+=`<input id="${p}" placeholder="${p}">`;
+      if(mode!=="exam"){
+        container.innerHTML+=`<div id="${p}_correct" class="correctAnswer"></div>`;
+      }
     }
   }
 
   if(currentItem.type==="noun"){
     container.innerHTML+=`<input id="translation" placeholder="Translation">`;
+    if(mode!=="exam"){
+      container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
+    }
     container.innerHTML+=`
       <select id="gender">
         <option value="">Select gender</option>
@@ -219,11 +222,20 @@ function buildTestFields(container){
         <option value="feminine">feminine</option>
         <option value="neuter">neuter</option>
       </select>`;
+    if(mode!=="exam"){
+      container.innerHTML+=`<div id="gender_correct" class="correctAnswer"></div>`;
+    }
     container.innerHTML+=`<input id="plural" placeholder="Plural">`;
+    if(mode!=="exam"){
+      container.innerHTML+=`<div id="plural_correct" class="correctAnswer"></div>`;
+    }
   }
 
   if(currentItem.type==="word"){
     container.innerHTML+=`<input id="translation" placeholder="Translation">`;
+    if(mode!=="exam"){
+      container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
+    }
   }
 }
 
@@ -232,40 +244,80 @@ function checkAnswer(){
   let correct=true;
 
   if(currentItem.type==="verb"){
-    const inf=document.getElementById("inf").value.trim().toLowerCase();
+    const infField=document.getElementById("inf");
+    const inf=infField.value.trim().toLowerCase();
     if(inf!==currentItem.en.toLowerCase() && inf!==currentItem.he.toLowerCase()){
       correct=false;
+      if(mode!=="exam"){
+        infField.classList.add("error");
+        document.getElementById("inf_correct").innerText=
+          "Correct: "+currentItem.en+" / "+currentItem.he;
+      }
     }
+
     for(let p in currentItem.forms){
-      if(document.getElementById(p).value.trim()!==currentItem.forms[p]){
+      const field=document.getElementById(p);
+      const val=field.value.trim();
+      if(val!==currentItem.forms[p]){
         correct=false;
+        if(mode!=="exam"){
+          field.classList.add("error");
+          document.getElementById(p+"_correct").innerText=
+            "Correct: "+currentItem.forms[p];
+        }
         reinforcement.push(currentItem);
       }
     }
   }
 
   if(currentItem.type==="noun"){
-    const tr=document.getElementById("translation").value.trim().toLowerCase();
-    const gen=document.getElementById("gender").value;
-    const pl=document.getElementById("plural").value.trim();
+    const tr=document.getElementById("translation");
+    const gen=document.getElementById("gender");
+    const pl=document.getElementById("plural");
 
-    if(tr!==currentItem.en.toLowerCase() && tr!==currentItem.he.toLowerCase()){
+    const valTr=tr.value.trim().toLowerCase();
+    if(valTr!==currentItem.en.toLowerCase() &&
+       valTr!==currentItem.he.toLowerCase()){
       correct=false;
+      if(mode!=="exam"){
+        tr.classList.add("error");
+        document.getElementById("translation_correct").innerText=
+          "Correct: "+currentItem.en+" / "+currentItem.he;
+      }
     }
-    if(gen!==currentItem.gender){
+
+    if(gen.value!==currentItem.gender){
       correct=false;
+      if(mode!=="exam"){
+        gen.classList.add("error");
+        document.getElementById("gender_correct").innerText=
+          "Correct: "+currentItem.gender;
+      }
       reinforcement.push(currentItem);
     }
-    if(pl!==currentItem.plural){
+
+    if(pl.value.trim()!==currentItem.plural){
       correct=false;
+      if(mode!=="exam"){
+        pl.classList.add("error");
+        document.getElementById("plural_correct").innerText=
+          "Correct: "+currentItem.plural;
+      }
       reinforcement.push(currentItem);
     }
   }
 
   if(currentItem.type==="word"){
-    const tr=document.getElementById("translation").value.trim().toLowerCase();
-    if(tr!==currentItem.en.toLowerCase() && tr!==currentItem.he.toLowerCase()){
+    const tr=document.getElementById("translation");
+    const valTr=tr.value.trim().toLowerCase();
+    if(valTr!==currentItem.en.toLowerCase() &&
+       valTr!==currentItem.he.toLowerCase()){
       correct=false;
+      if(mode!=="exam"){
+        tr.classList.add("error");
+        document.getElementById("translation_correct").innerText=
+          "Correct: "+currentItem.en+" / "+currentItem.he;
+      }
     }
   }
 
@@ -275,7 +327,7 @@ function checkAnswer(){
     examResults.push(correct);
   }else{
     document.getElementById("feedback").innerText=
-      correct?"Correct ✔️":"Wrong";
+      correct?"Correct ✔️":"Errors shown above";
   }
 }
 
@@ -285,7 +337,6 @@ function nextItem(){
 }
 
 function finishRound(){
-
   if(mode==="exam"){
     const total=examResults.length;
     const correct=examResults.filter(x=>x).length;
