@@ -15,37 +15,21 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
 .correctAnswer{font-size:12px;color:red;margin-bottom:4px}
 #feedback{margin-top:10px;font-weight:bold}
 .row button{width:48%;display:inline-block}
-.stats{margin-top:15px;text-align:left;font-size:14px}
 </style>
 </head>
 <body>
 
 <div class="box">
-
 <h2>Romanian Trainer Pro</h2>
 
 <div id="menu">
-  <div class="row">
-    <button onclick="start('verbs')">Verbs</button>
-    <button onclick="start('nouns')">Nouns</button>
-  </div>
-  <div class="row">
-    <button onclick="start('colors')">Colors</button>
-    <button onclick="start('fruits')">Fruits</button>
-  </div>
-  <div class="row">
-    <button onclick="start('vegetables')">Vegetables</button>
-    <button onclick="start('function')">Function Words</button>
-  </div>
-  <button onclick="start('mixed')">Mixed Mode</button>
-
-  <div class="row">
-    <button onclick="setMode('study')">Study</button>
-    <button onclick="setMode('test')">Test</button>
-    <button onclick="setMode('exam')">Exam</button>
-  </div>
-
-  <button onclick="showStats()">Statistics</button>
+  <button onclick="start('verbs')">Verbs</button>
+  <button onclick="start('nouns')">Nouns</button>
+  <button onclick="start('colors')">Colors</button>
+  <button onclick="start('fruits')">Fruits</button>
+  <button onclick="start('vegetables')">Vegetables</button>
+  <button onclick="start('function')">Function Words</button>
+  <button onclick="start('mixed')">Mixed</button>
 </div>
 
 <div id="trainer" class="hidden">
@@ -57,31 +41,28 @@ button,input,select{width:100%;padding:8px;margin-top:6px;font-size:14px}
   <button onclick="backToMenu()">Back</button>
 </div>
 
-<div id="statistics" class="hidden stats"></div>
-
 </div>
 
 <script>
 
 let DATA = {};
-let currentCategory=[];
-let currentItem=null;
-let index=0;
-let mode="study";
-let reinforcement=[];
-let examResults=[];
+let currentCategory = [];
+let currentItem = null;
+let index = 0;
 
-fetch('data.json')
-  .then(response => response.json())
+fetch("data.json")
+  .then(res => res.json())
   .then(data => {
-      DATA = data;
+    DATA = data;
   });
 
-function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
+function shuffle(arr){
+  return [...arr].sort(() => Math.random() - 0.5);
+}
 
 function start(cat){
-  if(cat==="mixed"){
-    currentCategory=shuffle([
+  if(cat === "mixed"){
+    currentCategory = shuffle([
       ...DATA.verbs,
       ...DATA.nouns,
       ...DATA.colors,
@@ -89,184 +70,93 @@ function start(cat){
       ...DATA.vegetables,
       ...DATA.function
     ]);
-  }else{
-    currentCategory=shuffle(DATA[cat]);
+  } else {
+    currentCategory = shuffle(DATA[cat]);
   }
 
-  index=0;
-  reinforcement=[];
-  examResults=[];
+  index = 0;
   document.getElementById("menu").classList.add("hidden");
   document.getElementById("trainer").classList.remove("hidden");
   loadItem();
 }
 
-function setMode(m){
-  mode=m;
-  index=0;
-  reinforcement=[];
-  examResults=[];
-  loadItem();
-}
-
 function loadItem(){
-  if(index>=currentCategory.length){
-    finishRound();
+  if(index >= currentCategory.length){
+    alert("Round finished");
+    backToMenu();
     return;
   }
 
-  currentItem=currentCategory[index];
-  document.getElementById("word").innerText=currentItem.ro;
-  const container=document.getElementById("fields");
-  container.innerHTML="";
-  document.getElementById("feedback").innerText="";
+  currentItem = currentCategory[index];
+  document.getElementById("word").innerText = currentItem.ro;
+  const container = document.getElementById("fields");
+  container.innerHTML = "";
 
-  if(mode==="study"){
-    container.innerHTML=`<button onclick="showStudy()">Show Meaning</button>
-      <div id="studyBox" class="hidden"></div>`;
-  }else{
-    buildTestFields(container);
-  }
-}
-
-function showStudy(){
-  const box=document.getElementById("studyBox");
-  let html=`<b>English:</b> ${currentItem.en}<br>
-            <b>עברית:</b> ${currentItem.he}<br>`;
-  if(currentItem.type==="noun"){
-    html+=`<b>Gender:</b> ${currentItem.gender}<br>
-           <b>Plural:</b> ${currentItem.plural}<br>`;
-  }
-  if(currentItem.type==="verb"){
-    html+=`<b>Present:</b><br>`;
-    for(let p in currentItem.forms){
-      html+=`${p}: ${currentItem.forms[p]}<br>`;
-    }
-  }
-  box.innerHTML=html;
-  box.classList.remove("hidden");
-}
-
-function buildTestFields(container){
-
-  if(currentItem.type==="verb"){
-    container.innerHTML+=`<input id="inf" placeholder="Infinitive">`;
-    container.innerHTML+=`<div id="inf_correct" class="correctAnswer"></div>`;
-    for(let p in currentItem.forms){
-      container.innerHTML+=`<input id="${p}" placeholder="${p}">`;
-      container.innerHTML+=`<div id="${p}_correct" class="correctAnswer"></div>`;
-    }
+  if(currentItem.type === "word"){
+    container.innerHTML = `<input id="translation" placeholder="Translation (English or Hebrew)">`;
   }
 
-  if(currentItem.type==="noun"){
-    container.innerHTML+=`<input id="translation" placeholder="Translation">`;
-    container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
-    container.innerHTML+=`
+  if(currentItem.type === "noun"){
+    container.innerHTML = `
+      <input id="translation" placeholder="Translation">
       <select id="gender">
         <option value="">Select gender</option>
         <option value="masculine">masculine</option>
         <option value="feminine">feminine</option>
         <option value="neuter">neuter</option>
-      </select>`;
-    container.innerHTML+=`<div id="gender_correct" class="correctAnswer"></div>`;
-    container.innerHTML+=`<input id="plural" placeholder="Plural">`;
-    container.innerHTML+=`<div id="plural_correct" class="correctAnswer"></div>`;
+      </select>
+      <input id="plural" placeholder="Plural">
+    `;
   }
 
-  if(currentItem.type==="word"){
-    container.innerHTML+=`<input id="translation" placeholder="Translation">`;
-    container.innerHTML+=`<div id="translation_correct" class="correctAnswer"></div>`;
+  if(currentItem.type === "verb"){
+    container.innerHTML = `
+      <input id="inf" placeholder="Infinitive">
+    `;
+    for(let p in currentItem.forms){
+      container.innerHTML += `<input id="${p}" placeholder="${p}">`;
+    }
   }
+
+  document.getElementById("feedback").innerText = "";
 }
 
 function checkAnswer(){
+  let correct = true;
 
-  let correct=true;
-
-  if(currentItem.type==="verb"){
-    const infField=document.getElementById("inf");
-    const inf=infField.value.trim().toLowerCase();
-    if(inf!==currentItem.en.toLowerCase() && inf!==currentItem.he.toLowerCase()){
-      correct=false;
-      if(mode!=="exam"){
-        infField.classList.add("error");
-        document.getElementById("inf_correct").innerText=
-          "Correct: "+currentItem.en+" / "+currentItem.he;
-      }
+  if(currentItem.type === "word"){
+    const tr = document.getElementById("translation").value.trim().toLowerCase();
+    if(tr !== currentItem.en.toLowerCase() && tr !== currentItem.he.toLowerCase()){
+      correct = false;
     }
+  }
 
+  if(currentItem.type === "noun"){
+    const tr = document.getElementById("translation").value.trim().toLowerCase();
+    const gen = document.getElementById("gender").value;
+    const pl = document.getElementById("plural").value.trim();
+
+    if(tr !== currentItem.en.toLowerCase() && tr !== currentItem.he.toLowerCase()){
+      correct = false;
+    }
+    if(gen !== currentItem.gender) correct = false;
+    if(pl !== currentItem.plural) correct = false;
+  }
+
+  if(currentItem.type === "verb"){
+    const inf = document.getElementById("inf").value.trim().toLowerCase();
+    if(inf !== currentItem.en.toLowerCase() && inf !== currentItem.he.toLowerCase()){
+      correct = false;
+    }
     for(let p in currentItem.forms){
-      const field=document.getElementById(p);
-      const val=field.value.trim();
-      if(val!==currentItem.forms[p]){
-        correct=false;
-        if(mode!=="exam"){
-          field.classList.add("error");
-          document.getElementById(p+"_correct").innerText=
-            "Correct: "+currentItem.forms[p];
-        }
-        reinforcement.push(currentItem);
+      if(document.getElementById(p).value.trim() !== currentItem.forms[p]){
+        correct = false;
       }
     }
   }
 
-  if(currentItem.type==="noun"){
-    const tr=document.getElementById("translation");
-    const gen=document.getElementById("gender");
-    const pl=document.getElementById("plural");
-
-    const valTr=tr.value.trim().toLowerCase();
-    if(valTr!==currentItem.en.toLowerCase() &&
-       valTr!==currentItem.he.toLowerCase()){
-      correct=false;
-      if(mode!=="exam"){
-        tr.classList.add("error");
-        document.getElementById("translation_correct").innerText=
-          "Correct: "+currentItem.en+" / "+currentItem.he;
-      }
-    }
-
-    if(gen.value!==currentItem.gender){
-      correct=false;
-      if(mode!=="exam"){
-        gen.classList.add("error");
-        document.getElementById("gender_correct").innerText=
-          "Correct: "+currentItem.gender;
-      }
-      reinforcement.push(currentItem);
-    }
-
-    if(pl.value.trim()!==currentItem.plural){
-      correct=false;
-      if(mode!=="exam"){
-        pl.classList.add("error");
-        document.getElementById("plural_correct").innerText=
-          "Correct: "+currentItem.plural;
-      }
-      reinforcement.push(currentItem);
-    }
-  }
-
-  if(currentItem.type==="word"){
-    const tr=document.getElementById("translation");
-    const valTr=tr.value.trim().toLowerCase();
-    if(valTr!==currentItem.en.toLowerCase() &&
-       valTr!==currentItem.he.toLowerCase()){
-      correct=false;
-      if(mode!=="exam"){
-        tr.classList.add("error");
-        document.getElementById("translation_correct").innerText=
-          "Correct: "+currentItem.en+" / "+currentItem.he;
-      }
-    }
-  }
-
-  if(mode==="exam"){
-    examResults.push(correct);
-  }else{
-    document.getElementById("feedback").innerText=
-      correct?"Correct ✔️":"Errors shown above";
-  }
+  document.getElementById("feedback").innerText =
+    correct ? "Correct ✔️" : "Wrong";
 }
 
 function nextItem(){
@@ -274,45 +164,11 @@ function nextItem(){
   loadItem();
 }
 
-function finishRound(){
-  if(mode==="exam"){
-    const total=examResults.length;
-    const correct=examResults.filter(x=>x).length;
-    const percent=Math.round((correct/total)*100);
-    alert("Exam Result: "+percent+"%");
-    backToMenu();
-    return;
-  }
-
-  if(reinforcement.length>0){
-    alert("Reinforcement Round");
-    currentCategory=shuffle(reinforcement);
-    reinforcement=[];
-    index=0;
-    loadItem();
-  }else{
-    alert("Round Finished");
-    backToMenu();
-  }
-}
-
-function showStats(){
-  const s=JSON.parse(localStorage.getItem("roStats")||"{}");
-  const percent=s.total?Math.round((s.correct/s.total)*100):0;
-  document.getElementById("statistics").classList.remove("hidden");
-  document.getElementById("statistics").innerHTML=
-    `<b>Total Attempts:</b> ${s.total||0}<br>
-     <b>Correct:</b> ${s.correct||0}<br>
-     <b>Success Rate:</b> ${percent}%`;
-}
-
 function backToMenu(){
   document.getElementById("trainer").classList.add("hidden");
   document.getElementById("menu").classList.remove("hidden");
-  document.getElementById("statistics").classList.add("hidden");
 }
 
 </script>
-
 </body>
 </html>

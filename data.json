@@ -1,0 +1,61 @@
+{
+  "verbs": [
+    {
+      "type": "verb",
+      "ro": "a merge",
+      "en": "to go",
+      "he": "ללכת",
+      "forms": {
+        "eu": "merg",
+        "tu": "mergi",
+        "el": "merge",
+        "noi": "mergem",
+        "voi": "mergeți",
+        "ei": "merg"
+      }
+    }
+  ],
+
+  "nouns": [
+    {
+      "type": "noun",
+      "ro": "copil",
+      "en": "child",
+      "he": "ילד",
+      "gender": "masculine",
+      "plural": "copii"
+    }
+  ],
+
+  "colors": [
+    { "type": "word", "ro": "roșu", "en": "red", "he": "אדום" },
+    { "type": "word", "ro": "albastru", "en": "blue", "he": "כחול" },
+    { "type": "word", "ro": "verde", "en": "green", "he": "ירוק" }
+  ],
+
+  "fruits": [
+    {
+      "type": "noun",
+      "ro": "măr",
+      "en": "apple",
+      "he": "תפוח",
+      "gender": "neuter",
+      "plural": "mere"
+    }
+  ],
+
+  "vegetables": [
+    {
+      "type": "noun",
+      "ro": "cartof",
+      "en": "potato",
+      "he": "תפוח אדמה",
+      "gender": "masculine",
+      "plural": "cartofi"
+    }
+  ],
+
+  "function": [
+    { "type": "word", "ro": "fără", "en": "without", "he": "בלי" }
+  ]
+}
